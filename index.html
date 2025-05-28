@@ -119,7 +119,13 @@
         </div>
 
         <footer class="mt-12 text-center">
-            <button id="contact-us-button" class="text-blue-600 hover:text-blue-800 hover:underline">お問い合わせ</button>
+            <button onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSdF-7vxU4M4hhXG22OQywLaKE7toZ6bW4NWNL9Y3f2kEn8XxA/viewform?usp=dialog', '_blank')">
+                お問い合わせはこちら
+              </button>              
+        </footer>
+        <footer class="mt-12 text-center">
+            <p>株式会社ミセミーヤ</p>
+            <p>メール:misemi-ya@mail.com</p>
         </footer>
     </div>
 
@@ -534,19 +540,6 @@
         }
         
         // --- お問い合わせ関連 ---
-        contactUsButton.addEventListener('click', () => openModal('contact-modal'));
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = document.getElementById('contact-name').value;
-            const email = document.getElementById('contact-email').value;
-            const subject = document.getElementById('contact-subject').value;
-            const message = document.getElementById('contact-message').value;
-            const mailtoLink = `mailto:misemi-ya@mail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`お名前: ${name}\nメールアドレス: ${email}\n\nお問い合わせ内容:\n${message}`)}`;
-            window.location.href = mailtoLink;
-            showMessage("メーラーを開いています...");
-            contactForm.reset();
-            closeModal('contact-modal');
-        });
 
         // --- メッセージ表示 ---
         const messageBox = document.getElementById('message-box');
