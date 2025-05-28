@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ミセミーヤ - 商品一覧</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', 'Inter', sans-serif;
+        }
+        .product-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .filter-button {
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .filter-button.active {
+            background-color: #1D4ED8; /* Tailwind blue-700 */
+            color: white;
+        }
+        .filter-button:not(.active):hover {
+            background-color: #DBEAFE; /* Tailwind blue-100 */
+        }
+        .category-scrollbar::-webkit-scrollbar { height: 8px; }
+        .category-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .category-scrollbar::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        .category-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
+        #search-input:focus { ring: -2ringblue -500px;border-blue-500; }
+
+        /* モーダルスタイル */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 100; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto; /* 10% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+            max-width: 700px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .modal-content-lg {
+             max-width: 900px;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .cart-item-quantity-controls button {
+            width: 30px;
+            height: 30px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="mb-6 flex flex-col sm:flex-row justify-between items-center">
+            <div class="text-center sm:text-left mb-4 sm:mb-0">
+                <h1 class="text-4xl font-bold text-gray-800">ミセミーヤ</h1>
+                <p class="text-xl text-gray-600 mt-1">商品一覧</p>
+            </div>
+            <button id="view-cart-button" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md transition-colors relative">
+                <i class="fas fa-shopping-cart mr-2"></i>カートを見る
+                <span id="cart-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+            </button>
+        </header>
+
+        <div class="mb-6 bg-white p-4 rounded-lg shadow">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input type="text" id="search-input" placeholder="商品名で検索..." class="flex-grow p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow">
+                <button id="search-button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-md transition-colors whitespace-nowrap">
+                    検索
+                </button>
+            </div>
+        </div>
+
+        <nav class="mb-8 bg-white p-4 rounded-lg shadow">
+            <h2 class="text-lg font-semibold mb-3 text-gray-700">カテゴリで絞り込み</h2>
+            <div id="category-filter-buttons" class="flex space-x-2 overflow-x-auto category-scrollbar pb-2">
+                </div>
+        </nav>
+
+        <main id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            </main>
+
+        <div id="load-more-container" class="text-center mt-8 mb-4">
+            <button id="load-more-button" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-8 rounded-md transition-colors">
+                もっと見る
+            </button>
+        </div>
+
+        <footer class="mt-12 text-center">
+            <button id="contact-us-button" class="text-blue-600 hover:text-blue-800 hover:underline">お問い合わせ</button>
+        </footer>
+    </div>
+
+    <div id="cart-modal" class="modal">
+        <div class="modal-content modal-content-lg">
+            <span class="close-button" onclick="closeModal('cart-modal')">&times;</span>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">ショッピングカート</h2>
+            <div id="cart-items-container" class="mb-6 max-h-96 overflow-y-auto">
+                </div>
+            <div class="text-right mb-6">
+                <p class="text-xl font-semibold text-gray-800">合計金額: <span id="cart-total-price">¥0</span></p>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeModal('cart-modal')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-md">買い物を続ける</button>
+                <button id="checkout-button" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md">注文する</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="contact-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('contact-modal')">&times;</span>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">お問い合わせ</h2>
+            <form id="contact-form">
+                <div class="mb-4">
+                    <label for="contact-name" class="block text-sm font-medium text-gray-700 mb-1">お名前</label>
+                    <input type="text" id="contact-name" name="name" required class="w-full p-2 border border-gray-300 rounded-md">
+                </div>
+                <div class="mb-4">
+                    <label for="contact-email" class="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+                    <input type="email" id="contact-email" name="email" required class="w-full p-2 border border-gray-300 rounded-md">
+                </div>
+                <div class="mb-4">
+                    <label for="contact-subject" class="block text-sm font-medium text-gray-700 mb-1">件名</label>
+                    <input type="text" id="contact-subject" name="subject" required class="w-full p-2 border border-gray-300 rounded-md">
+                </div>
+                <div class="mb-4">
+                    <label for="contact-message" class="block text-sm font-medium text-gray-700 mb-1">お問い合わせ内容</label>
+                    <textarea id="contact-message" name="message" rows="4" required class="w-full p-2 border border-gray-300 rounded-md"></textarea>
+                </div>
+                <div class="text-right">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md">送信</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="message-box" class="fixed bottom-5 right-5 bg-blue-600 text-white p-4 rounded-lg shadow-xl hidden transition-opacity duration-300 z-[101]">
+        <p id="message-text"></p>
+    </div>
+
+    <script>
+        // --- グローバル変数 ---
+        let cartItems = []; 
+        let currentCategory = 'すべて';
+        const categories = generateCategories(100); 
+        const ITEMS_PER_PAGE = 12; // 1ページに表示する商品数
+        let displayedItemsCount = 0; // 現在表示されている商品数
+        let currentFilteredProducts = []; // 現在のフィルター条件に一致する全商品リスト
+
+        // --- ダミー商品データ (価格情報を追加) ---
+        const allProducts = [
+            { id: 1, name: "オーガニック野菜セット", category: "生鮮食品", price: 2500, imageUrl: "https://placehold.co/300x200/a3e635/4d7c0f?text=野菜セット" },
+            { id: 2, name: "高級食パン (2斤)", category: "パン・ベーカリー", price: 800, imageUrl: "https://placehold.co/300x200/fde68a/854d0e?text=食パン" },
+            { id: 3, name: "特選コーヒー豆 200g", category: "コーヒー・ココア", price: 1200, imageUrl: "https://placehold.co/300x200/78350f/fef3c7?text=コーヒー豆" },
+            { id: 4, name: "国産はちみつ 500g", category: "調味料・スパイス", price: 2800, imageUrl: "https://placehold.co/300x200/facc15/b45309?text=はちみつ" },
+            { id: 5, name: "冷凍シーフードミックス 1kg", category: "冷凍食品", price: 1800, imageUrl: "https://placehold.co/300x200/38bdf8/075985?text=シーフード" },
+            { id: 6, name: "クラフトビール飲み比べセット", category: "ビール・発泡酒", price: 3500, imageUrl: "https://placehold.co/300x200/fb923c/c2410c?text=クラフトビール" },
+            { id: 7, name: "有機栽培米 5kg", category: "米・雑穀", price: 3200, imageUrl: "https://placehold.co/300x200/fef08a/854d0e?text=お米" },
+            { id: 8, name: "手作りジャムセット (3種)", category: "ジャム・シロップ", price: 1500, imageUrl: "https://placehold.co/300x200/f472b6/9d174d?text=ジャムセット" },
+            { id: 9, name: "チーズ詰め合わせ", category: "乳製品・チーズ", price: 4000, imageUrl: "https://placehold.co/300x200/fcd34d/92400e?text=チーズ" },
+            { id: 10, name: "高級チョコレートアソート", category: "チョコレート", price: 3000, imageUrl: "https://placehold.co/300x200/7c2d12/fef3c7?text=チョコレート" },
+            { id: 11, name: "最新ワイヤレスイヤホン", category: "オーディオ機器", price: 7800, imageUrl: "https://placehold.co/300x200/60a5fa/1e3a8a?text=イヤホン" },
+            { id: 12, name: "ポータブルSSD 1TB", category: "PC周辺機器", price: 12000, imageUrl: "https://placehold.co/300x200/7dd3fc/0c4a6e?text=SSD" },
+            { id: 13, name: "多機能スマートプラグ", category: "スマートホーム", price: 2200, imageUrl: "https://placehold.co/300x200/a78bfa/5b21b6?text=スマートプラグ" },
+            { id: 14, name: "モバイルバッテリー 大容量", category: "スマホアクセサリー", price: 3500, imageUrl: "https://placehold.co/300x200/c4b5fd/6d28d9?text=モバイルバッテリー" },
+            { id: 15, name: "4K液晶モニター 27インチ", category: "ディスプレイ", price: 35000, imageUrl: "https://placehold.co/300x200/818cf8/3730a3?text=4Kモニター" },
+            { id: 16, name: "メカニカルキーボード 青軸", category: "キーボード・マウス", price: 8800, imageUrl: "https://placehold.co/300x200/f472b6/831843?text=キーボード" },
+            { id: 17, name: "エコ洗剤詰替用 1L", category: "日用消耗品", price: 500, imageUrl: "https://placehold.co/300x200/34d399/059669?text=洗剤" },
+            { id: 18, name: "アロマディフューザー", category: "リラックスグッズ", price: 3000, imageUrl: "https://placehold.co/300x200/d8b4fe/6b21a8?text=ディフューザー" },
+            { id: 19, name: "マイクロファイバータオルセット", category: "タオル・バス用品", price: 1500, imageUrl: "https://placehold.co/300x200/e9d5ff/7e22ce?text=タオル" },
+            { id: 20, name: "木製ダイニングテーブル", category: "テーブル・机", price: 28000, imageUrl: "https://placehold.co/300x200/f59e0b/9a3412?text=テーブル" },
+            { id: 21, name: "観葉植物 モンステラ", category: "観葉植物", price: 2800, imageUrl: "https://placehold.co/300x200/4ade80/15803d?text=モンステラ" },
+            { id: 22, name: "LED間接照明", category: "照明器具", price: 4500, imageUrl: "https://placehold.co/300x200/86efac/16a34a?text=LED照明" },
+            { id: 23, name: "サイクロン掃除機", category: "生活家電", price: 15000, imageUrl: "https://placehold.co/300x200/f87171/b91c1c?text=掃除機" },
+            { id: 24, name: "万年筆セット", category: "筆記用具", price: 5000, imageUrl: "https://placehold.co/300x200/c084fc/7e22ce?text=万年筆" },
+            { id: 25, name: "話題のビジネス書", category: "ビジネス・経済", price: 1800, imageUrl: "https://placehold.co/300x200/22d3ee/0e7490?text=ビジネス書" },
+            { id: 26, name: "人気小説 上下巻セット", category: "小説・文学", price: 2400, imageUrl: "https://placehold.co/300x200/67e8f9/0891b2?text=小説セット" },
+            { id: 27, name: "最新映画 Blu-ray", category: "DVD・ブルーレイ", price: 4200, imageUrl: "https://placehold.co/300x200/0ea5e9/0c4a6e?text=Blu-ray" },
+            { id: 28, name: "シルバーネックレス", category: "レディースアクセサリー", price: 8800, imageUrl: "https://placehold.co/300x200/a5b4fc/4338ca?text=ネックレス" },
+            { id: 29, name: "オーガニックコットンTシャツ", category: "メンズトップス", price: 3200, imageUrl: "https://placehold.co/300x200/38bdf8/075985?text=Tシャツ" },
+            { id: 30, name: "保湿フェイスクリーム", category: "スキンケア", price: 2800, imageUrl: "https://placehold.co/300x200/f472b6/9d174d?text=クリーム" },
+            { id: 31, name: "プラモデル 戦闘機", category: "模型・プラモデル", price: 3500, imageUrl: "https://placehold.co/300x200/f0abfc/a21caf?text=プラモデル" },
+            { id: 32, name: "一眼レフカメラ入門セット", category: "カメラ", price: 65000, imageUrl: "https://placehold.co/300x200/e879f9/86198f?text=カメラセット" },
+            { id: 33, name: "ランニングシューズ 軽量モデル", category: "ランニング用品", price: 9800, imageUrl: "https://placehold.co/300x200/facc15/b45309?text=ランニングシューズ" },
+            { id: 34, name: "ヨガマット 厚手", category: "フィットネス・トレーニング", price: 2500, imageUrl: "https://placehold.co/300x200/eab308/a16207?text=ヨガマット" },
+            { id: 35, name: "折りたたみキャンプチェア", category: "アウトドアチェア", price: 4000, imageUrl: "https://placehold.co/300x200/84cc16/3f6212?text=キャンプチェア" },
+            { id: 36, name: "LEDランタン 高輝度", category: "アウトドアライト", price: 3200, imageUrl: "https://placehold.co/300x200/a3e635/4d7c0f?text=LEDランタン" },
+            { id: 37, name: "ゲーミングキーボード RGB", category: "ゲーミングデバイス", price: 12000, imageUrl: "https://placehold.co/300x200/f43f5e/881337?text=キーボード" },
+            { id: 38, name: "ドリップコーヒーメーカー", category: "キッチン家電", price: 6000, imageUrl: "https://placehold.co/300x200/d946ef/701a75?text=コーヒーメーカー" },
+            { id: 39, name: "Bluetoothスピーカー 防水", category: "ポータブルオーディオ", price: 5500, imageUrl: "https://placehold.co/300x200/8b5cf6/4c1d95?text=スピーカー" },
+            { id: 40, name: "電動歯ブラシ 高機能モデル", category: "オーラルケア", price: 9000, imageUrl: "https://placehold.co/300x200/22d3ee/0891b2?text=電動歯ブラシ" },
+            // さらに40個ほど商品を追加 (ID: 41-80)
+            ...Array.from({ length: 40 }, (_, i) => ({
+                id: 41 + i,
+                name: `サンプル商品 ${41 + i}`,
+                category: categories[Math.floor(Math.random() * (categories.length -1)) + 1], // 「すべて」以外からランダム
+                price: Math.floor(Math.random() * 10000) + 500,
+                imageUrl: `https://placehold.co/300x200/cbd5e1/475569?text=商品${41+i}`
+            }))
+        ];
+
+        // --- DOM要素取得 ---
+        const productGrid = document.getElementById('product-grid');
+        const categoryFilterButtonsContainer = document.getElementById('category-filter-buttons');
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const viewCartButton = document.getElementById('view-cart-button');
+        const cartModal = document.getElementById('cart-modal');
+        const cartItemsContainer = document.getElementById('cart-items-container');
+        const cartTotalPriceEl = document.getElementById('cart-total-price');
+        const cartBadge = document.getElementById('cart-badge');
+        const checkoutButton = document.getElementById('checkout-button');
+        const contactUsButton = document.getElementById('contact-us-button');
+        const contactModal = document.getElementById('contact-modal');
+        const contactForm = document.getElementById('contact-form');
+        const loadMoreButton = document.getElementById('load-more-button');
+        const loadMoreContainer = document.getElementById('load-more-container');
+
+        // --- カテゴリ生成関数 ---
+        function generateCategories(count) {
+            const baseCategories = [
+                "生鮮食品", "パン・ベーカリー", "コーヒー・ココア", "調味料・スパイス", "冷凍食品", "ビール・発泡酒", "米・雑穀", "ジャム・シロップ", "乳製品・チーズ", "チョコレート",
+                "オーディオ機器", "PC周辺機器", "スマートホーム", "スマホアクセサリー", "ディスプレイ", "キーボード・マウス",
+                "日用消耗品", "リラックスグッズ", "タオル・バス用品", "テーブル・机", "観葉植物", "照明器具", "生活家電", "筆記用具",
+                "ビジネス・経済", "小説・文学", "DVD・ブルーレイ", "レディースアクセサリー", "メンズトップス", "スキンケア",
+                "模型・プラモデル", "カメラ", "ランニング用品", "フィットネス・トレーニング", "アウトドアチェア", "アウトドアライト",
+                "ゲーミングデバイス", "キッチン家電", "ポータブルオーディオ", "オーラルケア",
+                "ワイン・シャンパン", "日本酒・焼酎", "お菓子・駄菓子", "インスタント食品", "缶詰・瓶詰", "健康食品・サプリ",
+                "ノートPC", "タブレット", "プリンター・スキャナー", "ネットワーク機器", "VRゴーグル", "ドローン",
+                "レディースファッション", "メンズファッション", "キッズ・ベビー服", "腕時計", "ジュエリー", "帽子・キャップ",
+                "メイクアップ", "ボディケア", "ネイルケア", "シェービング用品", "アロマ・お香",
+                "防災グッズ", "ペット用品", "園芸用品", "DIYツール", "カー用品", "バイク用品",
+                "寝具・ベッド", "ソファ・チェア", "収納家具", "ラグ・カーペット", "事務用品", "学用品",
+                "雑誌・コミック", "絵本・児童書", "専門書・学術書", "楽譜・スコア", "CD・レコード", "楽器・DTM",
+                "映画・ドラマDVD", "アニメDVD", "スポーツDVD", "音楽DVD",
+                "ゴルフ用品", "釣り具", "キャンプ用品", "登山用品", "自転車本体・パーツ", "マリンスポーツ",
+                "ボードゲーム", "パズル", "フィギュア", "鉄道模型", "画材・絵具", "手芸キット"
+            ];
+            let generated = ["すべて", ...new Set(baseCategories)]; // 重複を削除して基本カテゴリを設定
+            
+            let i = 1;
+            while(generated.length < count) {
+                const fillerCat = `その他カテゴリ${i++}`;
+                if(!generated.includes(fillerCat)) generated.push(fillerCat);
+            }
+            return generated.slice(0, count);
+        }
+
+        // --- 表示関連関数 ---
+        function displayCategoryButtons() {
+            categoryFilterButtonsContainer.innerHTML = '';
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.dataset.category = category;
+                button.textContent = category;
+                button.className = 'filter-button whitespace-nowrap px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md';
+                if (category === currentCategory) {
+                    button.classList.add('active');
+                }
+                button.addEventListener('click', () => {
+                    currentCategory = category;
+                    document.querySelectorAll('#category-filter-buttons .filter-button').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    resetAndDisplayProducts(); // フィルター変更時は表示をリセット
+                    showMessage(`${category} の商品を表示します。`);
+                });
+                categoryFilterButtonsContainer.appendChild(button);
+            });
+        }
+
+        function createProductCard(product) {
+            const isInCart = cartItems.some(item => item.product.id === product.id);
+            const buttonText = isInCart ? 'カートに追加済み' : 'カートに追加';
+            const buttonClass = isInCart 
+                ? 'bg-yellow-500 hover:bg-yellow-600 cursor-not-allowed' 
+                : 'bg-blue-600 hover:bg-blue-700';
+
+            return `
+                <div class="product-card bg-white rounded-lg shadow-md overflow-hidden p-4 flex flex-col text-center">
+                    <img src="${product.imageUrl}" alt="${product.name}" class="w-full h-40 sm:h-48 object-cover mb-4 rounded" onerror="this.onerror=null;this.src='https://placehold.co/300x200/cccccc/969696?text=画像なし';">
+                    <h3 class="text-md sm:text-lg font-semibold text-gray-800 mb-1 h-12 sm:h-14 overflow-hidden">${product.name}</h3>
+                    <p class="text-xs sm:text-sm text-gray-500 mb-1 h-8 overflow-hidden">${product.category}</p>
+                    <p class="text-lg sm:text-xl font-bold text-red-600 mb-3">¥${product.price.toLocaleString()}</p>
+                    <button class="add-to-cart-button mt-auto ${buttonClass} text-white font-medium py-2 px-4 rounded-md text-sm w-full" data-product-id="${product.id}" ${isInCart ? 'disabled' : ''}>
+                        ${buttonText}
+                    </button>
+                </div>
+            `;
+        }
+        
+        function filterProducts() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            let filtered = allProducts;
+
+            if (currentCategory !== 'すべて') {
+                filtered = filtered.filter(product => product.category === currentCategory);
+            }
+            if (searchTerm) {
+                filtered = filtered.filter(product => product.name.toLowerCase().includes(searchTerm));
+            }
+            currentFilteredProducts = filtered; // フィルター結果を保存
+        }
+
+        function displayProducts(append = false) {
+            if (!append) { // 新規表示またはフィルター変更時
+                productGrid.innerHTML = '';
+            }
+
+            const productsToDisplayNow = currentFilteredProducts.slice(0, displayedItemsCount);
+            
+            // 既に表示されている商品を除いて追加
+            const startIndex = append ? productGrid.children.length : 0;
+            const itemsToRender = productsToDisplayNow.slice(startIndex);
+
+            if (currentFilteredProducts.length === 0 && !append) {
+                 let message = "該当する商品がありません。";
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                if (searchTerm && currentCategory !== 'すべて') message = `「${currentCategory}」カテゴリで「${searchTerm}」に一致する商品はありません。`;
+                else if (searchTerm) message = `「${searchTerm}」に一致する商品はありません。`;
+                else if (currentCategory !== 'すべて') message = `「${currentCategory}」カテゴリに商品はありません。`;
+                productGrid.innerHTML = `<p class="col-span-full text-center text-gray-500 py-8">${message}</p>`;
+            } else {
+                itemsToRender.forEach(product => {
+                    productGrid.innerHTML += createProductCard(product);
+                });
+            }
+            
+            addEventListenersToCartButtons();
+            updateLoadMoreButton();
+        }
+        
+        function resetAndDisplayProducts() {
+            displayedItemsCount = ITEMS_PER_PAGE; // 表示件数をリセット
+            filterProducts(); // フィルターを適用
+            displayProducts(false); // 商品を新規に表示
+        }
+
+        function updateLoadMoreButton() {
+            if (displayedItemsCount >= currentFilteredProducts.length) {
+                loadMoreContainer.classList.add('hidden'); // 全商品表示済みならボタンを隠す
+            } else {
+                loadMoreContainer.classList.remove('hidden');
+            }
+        }
+
+        loadMoreButton.addEventListener('click', () => {
+            const previouslyDisplayed = displayedItemsCount;
+            displayedItemsCount += ITEMS_PER_PAGE;
+            displayedItemsCount = Math.min(displayedItemsCount, currentFilteredProducts.length); // 最大数を超えないように
+            displayProducts(true); // 商品を追加表示
+        });
+
+
+        // --- カート関連関数 ---
+        function addEventListenersToCartButtons() {
+            document.querySelectorAll('.add-to-cart-button').forEach(button => {
+                const newButton = button.cloneNode(true); // イベントリスナーの重複を防ぐためにクローン
+                button.parentNode.replaceChild(newButton, button);
+
+                if (!newButton.disabled) { 
+                    newButton.addEventListener('click', (e) => {
+                        const productId = parseInt(e.target.dataset.productId);
+                        const productToAdd = allProducts.find(p => p.id === productId);
+                        if (productToAdd) {
+                            addToCart(productToAdd);
+                            // ボタンの状態を即時更新
+                            e.target.textContent = 'カートに追加済み';
+                            e.target.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                            e.target.classList.add('bg-yellow-500', 'hover:bg-yellow-600', 'cursor-not-allowed');
+                            e.target.disabled = true;
+                        }
+                    });
+                }
+            });
+        }
+
+        function addToCart(product) {
+            const existingItem = cartItems.find(item => item.product.id === product.id);
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                cartItems.push({ product: product, quantity: 1 });
+            }
+            updateCartDisplay(); // カートモーダルとバッジを更新
+            showMessage(`${product.name} をカートに追加しました。`);
+        }
+
+        function updateCartDisplay() {
+            cartItemsContainer.innerHTML = '';
+            let totalPrice = 0;
+            let totalItems = 0;
+
+            if (cartItems.length === 0) {
+                cartItemsContainer.innerHTML = '<p class="text-gray-500 text-center py-4">カートは空です。</p>';
+            } else {
+                cartItems.forEach((item, index) => {
+                    const itemTotalPrice = item.product.price * item.quantity;
+                    totalPrice += itemTotalPrice;
+                    totalItems += item.quantity;
+                    cartItemsContainer.innerHTML += `
+                        <div class="flex items-center justify-between border-b py-3">
+                            <div class="flex items-center w-2/5">
+                                <img src="${item.product.imageUrl}" alt="${item.product.name}" class="w-16 h-16 object-cover rounded mr-3" onerror="this.onerror=null;this.src='https://placehold.co/64x64/cccccc/969696?text=画像なし';">
+                                <div>
+                                    <p class="font-semibold text-sm">${item.product.name}</p>
+                                    <p class="text-xs text-gray-500">¥${item.product.price.toLocaleString()}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center cart-item-quantity-controls">
+                                <button onclick="updateCartItemQuantity(${index}, -1)" class="bg-gray-200 hover:bg-gray-300 rounded-l px-2 py-1 text-sm">-</button>
+                                <span class="px-3 py-1 border-t border-b">${item.quantity}</span>
+                                <button onclick="updateCartItemQuantity(${index}, 1)" class="bg-gray-200 hover:bg-gray-300 rounded-r px-2 py-1 text-sm">+</button>
+                            </div>
+                            <p class="w-1/5 text-right font-semibold text-sm">¥${itemTotalPrice.toLocaleString()}</p>
+                            <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700 text-sm"><i class="fas fa-trash"></i></button>
+                        </div>
+                    `;
+                });
+            }
+            cartTotalPriceEl.textContent = `¥${totalPrice.toLocaleString()}`;
+            cartBadge.textContent = totalItems;
+            cartBadge.classList.toggle('hidden', totalItems === 0);
+            checkoutButton.disabled = cartItems.length === 0;
+            
+            // カートの状態が変わったので、商品一覧のボタンも更新する必要がある場合がある
+            // (カートから削除した場合など)
+            // displayProducts(false); // これを呼ぶと表示がリセットされるので注意。部分更新が望ましい。
+            // 今回はaddToCart時のみ商品カードのボタンを更新し、削除時はカートモーダル内のみの更新とする。
+            // 必要であれば、カートから削除した商品のIDを元に、商品グリッド内の該当ボタンを再度有効化する処理を追加する。
+        }
+
+        function updateCartItemQuantity(index, change) {
+            const item = cartItems[index];
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) {
+                    const removedProductId = item.product.id;
+                    cartItems.splice(index, 1); // 数量が0以下なら削除
+                    // カートから削除された商品のボタンを商品一覧で再度有効化
+                    const productCardButton = productGrid.querySelector(`.add-to-cart-button[data-product-id="${removedProductId}"]`);
+                    if(productCardButton){
+                        productCardButton.textContent = 'カートに追加';
+                        productCardButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600', 'cursor-not-allowed');
+                        productCardButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                        productCardButton.disabled = false;
+                    }
+                }
+            }
+            updateCartDisplay();
+        }
+
+        function removeFromCart(index) {
+            const removedItemName = cartItems[index].product.name;
+            const removedProductId = cartItems[index].product.id;
+            cartItems.splice(index, 1);
+            updateCartDisplay();
+            showMessage(`${removedItemName} をカートから削除しました。`);
+
+            // カートから削除された商品のボタンを商品一覧で再度有効化
+            const productCardButton = productGrid.querySelector(`.add-to-cart-button[data-product-id="${removedProductId}"]`);
+            if(productCardButton){
+                productCardButton.textContent = 'カートに追加';
+                productCardButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600', 'cursor-not-allowed');
+                productCardButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                productCardButton.disabled = false;
+            }
+        }
+        
+        checkoutButton.addEventListener('click', () => {
+            if (cartItems.length > 0) {
+                showMessage(`ご注文ありがとうございます！合計 ${cartTotalPriceEl.textContent} の注文が完了しました (仮)。`);
+                cartItems.forEach(item => { // カートを空にした後、商品ボタンをリセット
+                     const productCardButton = productGrid.querySelector(`.add-to-cart-button[data-product-id="${item.product.id}"]`);
+                    if(productCardButton){
+                        productCardButton.textContent = 'カートに追加';
+                        productCardButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600', 'cursor-not-allowed');
+                        productCardButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                        productCardButton.disabled = false;
+                    }
+                });
+                cartItems = [];
+                updateCartDisplay();
+                closeModal('cart-modal');
+            } else {
+                showMessage("カートに商品がありません。");
+            }
+        });
+
+        // --- モーダル制御 ---
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = "block";
+            if (modalId === 'cart-modal') updateCartDisplay();
+        }
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                closeModal(event.target.id);
+            }
+        }
+        
+        // --- お問い合わせ関連 ---
+        contactUsButton.addEventListener('click', () => openModal('contact-modal'));
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('contact-name').value;
+            const email = document.getElementById('contact-email').value;
+            const subject = document.getElementById('contact-subject').value;
+            const message = document.getElementById('contact-message').value;
+            const mailtoLink = `mailto:misemi-ya@mail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`お名前: ${name}\nメールアドレス: ${email}\n\nお問い合わせ内容:\n${message}`)}`;
+            window.location.href = mailtoLink;
+            showMessage("メーラーを開いています...");
+            contactForm.reset();
+            closeModal('contact-modal');
+        });
+
+        // --- メッセージ表示 ---
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        let messageTimeout;
+        function showMessage(message) {
+            clearTimeout(messageTimeout);
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden');
+            messageBox.classList.add('opacity-100');
+            messageTimeout = setTimeout(() => {
+                messageBox.classList.remove('opacity-100');
+                messageBox.classList.add('hidden');
+            }, 3000);
+        }
+
+        // --- 初期化処理 ---
+        viewCartButton.addEventListener('click', () => openModal('cart-modal'));
+        searchButton.addEventListener('click', () => {
+            resetAndDisplayProducts(); // 検索時も表示をリセット
+            const searchTerm = searchInput.value.trim();
+            if (searchTerm) showMessage(`「${searchTerm}」で検索しました。`);
+            else showMessage(`検索語が入力されていません。`);
+        });
+        searchInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                searchButton.click();
+            }
+        });
+        
+        displayCategoryButtons();
+        resetAndDisplayProducts(); // 初期表示
+        showMessage("ようこそミセミーヤへ！");
+
+    </script>
+</body>
+</html>
