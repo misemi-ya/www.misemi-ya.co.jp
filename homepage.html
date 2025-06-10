@@ -61,7 +61,13 @@ a:hover {
 
 /* ヘッダー */
 header {
-    background-color: var(--white-color);
+    /* 変更点: 背景色をRGBAで指定して半透明に */
+    background-color: rgba(255, 255, 255, 0.8); /* 80%の不透明度を持つ白 */
+    
+    /* 追加点: 背景にすりガラス効果を追加 */
+    -webkit-backdrop-filter: blur(10px); /* Safari向け */
+    backdrop-filter: blur(10px); /* 標準 */
+
     padding: 25px 0;
     border-bottom: 1px solid #e0e0e0;
     position: sticky;
