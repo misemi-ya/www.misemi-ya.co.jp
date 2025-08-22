@@ -6,6 +6,38 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"
     crossorigin="anonymous"></script>
+  <!-- ✅ QRコード読み取りライブラリを追加 -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <style>
+    /* ✅ スキャナーを画面中央にオーバーレイ表示するためのスタイル */
+    #qr-reader-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    #qr-reader {
+      width: 90%;
+      max-width: 500px;
+      background-color: white;
+      border: 1px solid #ccc;
+    }
+    #close-scanner-btn {
+      margin-top: 16px;
+      padding: 8px 16px;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center h-screen">
   <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
@@ -20,6 +52,11 @@
       従来のIDでログイン
     </button>
 
+    <!-- 🔷 QR/バーコードでログイン -->
+    <button id="scan-qr-btn" class="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 px-4 rounded-md mb-4">
+      QR/バーコードでログイン
+    </button>
+
     <!-- 🔷 Microsoftアカウントでログイン -->
     <button id="signInMicrosoft" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md">
       Microsoftアカウントでサインイン
@@ -27,20 +64,23 @@
     <p id="userInfo" class="mt-4 text-sm"></p>
   </div>
 
+  <!-- ✅ スキャナーのUI -->
+  <div id="qr-reader-container" style="display: none;">
+    <div id="qr-reader"></div>
+    <button id="close-scanner-btn">キャンセル</button>
+  </div>
+
+
   <script>
-    // 🔹 MSAL 設定
+    // 🔹 MSAL 設定 (省略)
     const msalConfig = {
       auth: {
         clientId: "c997f97a-5a7f-4ddf-89d4-79f84a1d14fd",
         authority: "https://login.microsoftonline.com/f26d3362-79fe-4262-817a-531c7cdbf597",
-        redirectUri: "https://misemi-ya.github.io/www.misemi-ya.co.jp/syain.html" // ✅ Azureに登録済みのURIと一致させる
+        redirectUri: "https://misemi-ya.github.io/www.misemi-ya.co.jp/syain.html"
       },
-      cache: {
-        cacheLocation: "sessionStorage",
-        storeAuthStateInCookie: false
-      }
+      cache: { cacheLocation: "sessionStorage", storeAuthStateInCookie: false }
     };
-
     const msalInstance = new msal.PublicClientApplication(msalConfig);
     const loginRequest = { scopes: ["openid", "profile", "User.Read"] };
 
@@ -50,27 +90,89 @@
       const pw = document.getElementById("employee-password").value;
       if (id === "012365498827" && pw === "43386592") {
         console.log("従来のログイン成功！ ページ遷移を開始...");
-        window.location.href = "syain.html"; // ✅ 成功時に `syain.html` へ移動
+        window.location.href = "syain.html";
       }
-            if (id === "017446484632" && pw === "11969662") {
+      if (id === "017446484632" && pw === "11969662") {
         console.log("従来のログイン成功！ ページ遷移を開始...");
-        window.location.href = "syain.html"; // ✅ 成功時に `syain.html` へ移動
+        window.location.href = "syain.html";
       }
     }
 
-    // 🔷 Microsoftアカウントでサインイン（リダイレクト方式）
+    // 🔷 Microsoftアカウントでサインイン（リダイレクト方式） (省略)
     document.getElementById("signInMicrosoft").addEventListener("click", () => {
-      msalInstance.loginRedirect(loginRequest); // ✅ ページを切り替えてログイン
+      msalInstance.loginRedirect(loginRequest);
     });
 
-    // 🔷 ログイン後のリダイレクト処理
+    // 🔷 ログイン後のリダイレクト処理 (省略)
     msalInstance.handleRedirectPromise().then(response => {
       const account = msalInstance.getActiveAccount();
       if (account) {
         console.log("リダイレクトログイン成功！ ページ遷移を開始...");
-        window.location.href = "syain.html"; // ✅ 認証後の遷移を保証
+        window.location.href = "syain.html";
       }
     }).catch(err => console.error(err));
+
+
+    // ✅ --- ここからQRコード/バーコード処理 --- ✅
+
+    const qrReaderContainer = document.getElementById('qr-reader-container');
+    const closeScannerBtn = document.getElementById('close-scanner-btn');
+    const html5QrCode = new Html5Qrcode("qr-reader"); // スキャナーのインスタンスを生成
+
+    // スキャン成功時の処理
+    const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+      console.log(`スキャン成功: ${decodedText}`);
+      
+      // フォーマットは「ID:パスワード」を想定
+      const [id, pw] = decodedText.split(':');
+
+      if (id && pw) {
+        // 読み取ったIDとパスワードを入力欄に設定
+        document.getElementById('employee-id').value = id;
+        document.getElementById('employee-password').value = pw;
+        alert('読み取りに成功しました。自動でログインします。');
+        
+        // カメラを停止し、ログインを試行
+        stopScanner();
+        manualLogin();
+
+      } else {
+        alert('無効なQRコードです。「ID:パスワード」の形式のコードを使用してください。');
+        stopScanner();
+      }
+    };
+
+    // スキャナーを停止する関数
+    function stopScanner() {
+      html5QrCode.stop().then(ignore => {
+        // QR Code scanning is stopped.
+        qrReaderContainer.style.display = 'none';
+        console.log("QRコードスキャナーを停止しました。");
+      }).catch(err => {
+        // Stop failed, handle it.
+        console.error("QRコードスキャナーの停止に失敗しました。", err);
+        qrReaderContainer.style.display = 'none'; // 強制的に非表示
+      });
+    }
+
+    // 「QR/バーコードでログイン」ボタンのクリックイベント
+    document.getElementById('scan-qr-btn').addEventListener('click', () => {
+      qrReaderContainer.style.display = 'flex';
+      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+      // 背面カメラ(environment)を使用してスキャンを開始
+      html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
+        .catch(err => {
+          alert("カメラの起動に失敗しました。カメラのアクセス許可を確認してください。");
+          console.error("カメラを起動できませんでした。", err);
+          qrReaderContainer.style.display = 'none';
+        });
+    });
+
+    // 「キャンセル」ボタンのクリックイベント
+    closeScannerBtn.addEventListener('click', () => {
+      stopScanner();
+    });
+
   </script>
 </body>
 </html>
