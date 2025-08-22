@@ -26,8 +26,8 @@
       transform: translate(-50%, -50%);
       height: 3px; background-color: red; z-index: 2;
       pointer-events: none;
-      /* JSでの幅指定に対応できるよう最大幅も広げる */
-      max-width: 90vw; 
+      /* JSで大きな幅が指定されても画面からはみ出さないようにする */
+      max-width: 95vw; 
     }
 
     /* 赤い線の両端にある緑色の点 */
@@ -52,7 +52,7 @@
   <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
     <h1 class="text-2xl font-bold mb-6 text-center">従業員ログイン</h1>
 
-    <!-- 🔷 従来のログイン -->
+    <!-- (中略: HTML部分は変更なし) -->
     <label class="block mb-2 font-semibold">ID</label>
     <input id="employee-id" type="text" class="w-full mb-4 px-4 py-2 border rounded-md" placeholder="従業員ID">
     <label class="block mb-2 font-semibold">パスワード</label>
@@ -60,15 +60,11 @@
     <button onclick="manualLogin()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md">
       従来のIDでログイン
     </button>
-    
-    <!-- 区切り線 -->
     <div class="relative flex py-5 items-center">
         <div class="flex-grow border-t border-gray-300"></div>
         <span class="flex-shrink mx-4 text-gray-400 text-sm">または</span>
         <div class="flex-grow border-t border-gray-300"></div>
     </div>
-
-    <!-- QRコード/バーコードのボタン -->
     <div class="space-y-3">
         <button id="scan-qr-btn" class="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 px-4 rounded-md">
           QRコードでログイン
@@ -77,8 +73,6 @@
           バーコードでログイン
         </button>
     </div>
-
-    <!-- Microsoftアカウントでログイン -->
     <button id="signInMicrosoft" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md mt-5">
       Microsoftアカウントでサインイン
     </button>
@@ -93,15 +87,13 @@
   </div>
 
   <script>
-    // MSAL 設定
+    // (MSAL設定など、前半のJSは変更なし)
     const msalConfig = {
       auth: { clientId: "c997f97a-5a7f-4ddf-89d4-79f84a1d14fd", authority: "https://login.microsoftonline.com/f26d3362-79fe-4262-817a-531c7cdbf597", redirectUri: "https://misemi-ya.github.io/www.misemi-ya.co.jp/syain.html" },
       cache: { cacheLocation: "sessionStorage", storeAuthStateInCookie: false }
     };
     const msalInstance = new msal.PublicClientApplication(msalConfig);
     const loginRequest = { scopes: ["openid", "profile", "User.Read"] };
-    
-    // 従来のログイン処理
     function manualLogin() {
       const id = document.getElementById("employee-id").value;
       const pw = document.getElementById("employee-password").value;
@@ -110,8 +102,6 @@
         window.location.href = "syain.html";
       }
     }
-
-    // Microsoftアカウントでのログイン処理
     document.getElementById("signInMicrosoft").addEventListener("click", () => msalInstance.loginRedirect(loginRequest));
     msalInstance.handleRedirectPromise().then(response => { if (msalInstance.getActiveAccount()) { console.log("リダイレクトログイン成功！ ページ遷移を開始..."); window.location.href = "syain.html"; } }).catch(err => console.error(err));
 
@@ -122,9 +112,9 @@
     const lineOverlay = document.querySelector('.scanner-line-overlay');
     const html5QrCode = new Html5Qrcode("qr-reader");
 
-    // スキャナーの設定を2種類用意 (読み取り範囲を拡大)
-    const qrConfig = { fps: 10, qrbox: { width: 350, height: 350 } };
-    const barcodeConfig = { fps: 10, qrbox: { width: 450, height: 200 } };
+    // ✅ スキャナーの設定値を、携帯画面で最大化されるよう非常に大きく設定
+    const qrConfig = { fps: 10, qrbox: { width: 600, height: 600 } };
+    const barcodeConfig = { fps: 10, qrbox: { width: 800, height: 400 } };
 
     // スキャン成功時の共通処理
     const qrCodeSuccessCallback = (decodedText, decodedResult) => {
