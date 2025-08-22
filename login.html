@@ -8,7 +8,7 @@
     crossorigin="anonymous"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   
-  <!-- ✅ 中央揃えを修正したスタイル -->
+  <!-- ✅ くり抜きと読み取りの問題を修正したスタイル -->
   <style>
     /* スキャナーUI全体のコンテナ */
     #qr-reader-container {
@@ -19,7 +19,6 @@
       height: 100%;
       background: black;
       z-index: 9999;
-      /* ✅ 子要素を中央に配置するための基準とする */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -38,7 +37,6 @@
 
     /* ガイド全体のラッパー */
     #scanner-guide-wrapper {
-      /* ✅ 絶対位置指定でコンテナの中央に配置 */
       position: absolute;
       top: 50%;
       left: 50%;
@@ -49,6 +47,10 @@
       justify-content: center;
       width: 90vw;
       max-width: 600px;
+      /* ✅ くり抜き効果をbox-shadowで復活させる */
+      box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.6);
+      /* ✅ ガイドが見た目だけで、操作の邪魔をしないようにする */
+      pointer-events: none;
     }
 
     /* ガイドの各パーツ（四角）の共通スタイル */
@@ -59,16 +61,9 @@
     }
 
     /* ガイドの中央部分 */
-    #guide-center {
-      width: 45%;
-      height: 250px;
-    }
-
+    #guide-center { width: 45%; height: 250px; }
     /* ガイドの左右部分 */
-    #guide-left, #guide-right {
-      width: 27.5%;
-      height: 180px;
-    }
+    #guide-left, #guide-right { width: 27.5%; height: 180px; }
     
     /* ガイドの中央を走る赤い線 */
     .scanner-line {
@@ -97,18 +92,19 @@
 
     /* キャンセルボタン */
     #close-scanner-btn {
-      /* ✅ 位置指定を修正 */
       position: absolute;
-      bottom: 10vh; /* 画面下から10%の位置に */
+      bottom: 10vh;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 2;
+      z-index: 3; /* ガイドより手前 */
       padding: 10px 20px;
       background-color: white;
       color: black;
       font-weight: bold;
       border: none;
       border-radius: 4px;
+      /* ✅ ボタンはクリックできるようにpointer-eventsを戻す */
+      pointer-events: auto;
       cursor: pointer;
     }
   </style>
@@ -134,7 +130,7 @@
     <p id="userInfo" class="mt-4 text-sm"></p>
   </div>
 
-  <!-- ✅ スキャナーのUI -->
+  <!-- スキャナーのUI -->
   <div id="qr-reader-container" style="display: none;">
     <div id="qr-reader"></div>
     <div id="scanner-guide-wrapper">
@@ -183,7 +179,6 @@
         window.location.href = "syain.html";
       }
     }).catch(err => console.error(err));
-
 
     const qrReaderContainer = document.getElementById('qr-reader-container');
     const closeScannerBtn = document.getElementById('close-scanner-btn');
