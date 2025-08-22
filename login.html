@@ -6,34 +6,70 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"
     crossorigin="anonymous"></script>
-  <!-- ✅ QRコード読み取りライブラリを追加 -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  
+  <!-- ✅ スキャナーガイド用のスタイルを追加 -->
   <style>
-    /* ✅ スキャナーを画面中央にオーバーレイ表示するためのスタイル */
+    /* スキャナーUI全体のコンテナ */
     #qr-reader-container {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
+      background: black; /* 背景を黒に */
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 9999;
     }
+    
+    /* 実際のカメラ映像を表示するエリア */
     #qr-reader {
-      width: 90%;
-      max-width: 500px;
-      background-color: white;
-      border: 1px solid #ccc;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1; /* ガイドより後ろに配置 */
     }
+
+    /* 読み取りガイドの枠 */
+    #scanner-guide {
+      position: relative;
+      z-index: 2; /* 映像より手前に配置 */
+      width: 85vw;        /* 画面幅の85% */
+      max-width: 450px;   /* PCでも大きくなりすぎないように */
+      height: 180px;      /* 高さを設定して長方形に */
+      /* 枠の周囲を半透明の黒で塗りつぶし、中央の四角形をくり抜いたように見せる */
+      box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.5);
+      border: 2px solid rgba(255, 255, 255, 0.7); /* 白い枠線 */
+      border-radius: 8px;
+    }
+
+    /* ガイドの中央にある赤い線 */
+    .scanner-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: red;
+      box-shadow: 0 0 8px red; /* 線を少し光らせる */
+      transform: translateY(-50%);
+    }
+
+    /* キャンセルボタン */
     #close-scanner-btn {
-      margin-top: 16px;
-      padding: 8px 16px;
+      position: relative;
+      z-index: 2; /* 映像より手前に配置 */
+      margin-top: 24px;
+      padding: 10px 20px;
       background-color: white;
-      border: 1px solid #ccc;
+      color: black;
+      font-weight: bold;
+      border: none;
       border-radius: 4px;
       cursor: pointer;
     }
@@ -64,9 +100,12 @@
     <p id="userInfo" class="mt-4 text-sm"></p>
   </div>
 
-  <!-- ✅ スキャナーのUI -->
+  <!-- ✅ スキャナーのUI (ガイド線などを追加) -->
   <div id="qr-reader-container" style="display: none;">
     <div id="qr-reader"></div>
+    <div id="scanner-guide">
+      <div class="scanner-line"></div>
+    </div>
     <button id="close-scanner-btn">キャンセル</button>
   </div>
 
@@ -113,53 +152,47 @@
     }).catch(err => console.error(err));
 
 
-    // ✅ --- ここからQRコード/バーコード処理 --- ✅
+    // ✅ --- QRコード/バーコード処理 --- ✅
 
     const qrReaderContainer = document.getElementById('qr-reader-container');
     const closeScannerBtn = document.getElementById('close-scanner-btn');
-    const html5QrCode = new Html5Qrcode("qr-reader"); // スキャナーのインスタンスを生成
+    const html5QrCode = new Html5Qrcode("qr-reader");
 
-    // スキャン成功時の処理
     const qrCodeSuccessCallback = (decodedText, decodedResult) => {
       console.log(`スキャン成功: ${decodedText}`);
-      
-      // フォーマットは「ID:パスワード」を想定
       const [id, pw] = decodedText.split(':');
 
       if (id && pw) {
-        // 読み取ったIDとパスワードを入力欄に設定
         document.getElementById('employee-id').value = id;
         document.getElementById('employee-password').value = pw;
+        stopScanner(); // 最初にスキャナーを停止
         alert('読み取りに成功しました。自動でログインします。');
-        
-        // カメラを停止し、ログインを試行
-        stopScanner();
         manualLogin();
-
       } else {
+        stopScanner(); // 最初にスキャナーを停止
         alert('無効なQRコードです。「ID:パスワード」の形式のコードを使用してください。');
-        stopScanner();
       }
     };
 
-    // スキャナーを停止する関数
     function stopScanner() {
       html5QrCode.stop().then(ignore => {
-        // QR Code scanning is stopped.
         qrReaderContainer.style.display = 'none';
         console.log("QRコードスキャナーを停止しました。");
       }).catch(err => {
-        // Stop failed, handle it.
         console.error("QRコードスキャナーの停止に失敗しました。", err);
-        qrReaderContainer.style.display = 'none'; // 強制的に非表示
+        qrReaderContainer.style.display = 'none'; // 失敗しても強制的に非表示
       });
     }
 
-    // 「QR/バーコードでログイン」ボタンのクリックイベント
     document.getElementById('scan-qr-btn').addEventListener('click', () => {
       qrReaderContainer.style.display = 'flex';
-      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-      // 背面カメラ(environment)を使用してスキャンを開始
+      
+      // ✅ スキャン領域をバーコード向けに横長に変更
+      const config = { 
+        fps: 10, 
+        qrbox: { width: 300, height: 100 } 
+      };
+      
       html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
         .catch(err => {
           alert("カメラの起動に失敗しました。カメラのアクセス許可を確認してください。");
@@ -168,11 +201,9 @@
         });
     });
 
-    // 「キャンセル」ボタンのクリックイベント
     closeScannerBtn.addEventListener('click', () => {
       stopScanner();
     });
-
   </script>
 </body>
 </html>
