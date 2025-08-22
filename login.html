@@ -13,24 +13,35 @@
     #qr-reader-container {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: black; z-index: 9999; display: flex;
-      align-items: center; justify-content: center;
+      align-items: center; justify-content: center; flex-direction: column;
     }
     
     /* 実際のカメラ映像を表示するエリア */
     #qr-reader { width: 100%; height: 100%; border: none !important; }
     #qr-reader video { width: 100% !important; height: 100% !important; object-fit: cover; }
 
+    /* ガイドメッセージのスタイル */
+    #scanner-guide-text {
+      position: absolute;
+      top: 15vh;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: bold;
+      background-color: rgba(0,0,0,0.5);
+      padding: 8px 16px;
+      border-radius: 8px;
+      z-index: 3;
+    }
+
     /* ガイドの中央を走る赤い線 */
     .scanner-line-overlay {
       position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       height: 3px; background-color: red; z-index: 2;
-      pointer-events: none;
-      /* JSで大きな幅が指定されても画面からはみ出さないようにする */
-      max-width: 95vw; 
+      pointer-events: none; max-width: 95vw; 
     }
-
-    /* 赤い線の両端にある緑色の点 */
     .scanner-line-overlay::before, .scanner-line-overlay::after {
       content: ''; position: absolute; top: 50%;
       transform: translateY(-50%); width: 12px; height: 12px;
@@ -51,36 +62,22 @@
 <body class="bg-gray-100 flex items-center justify-center h-screen">
   <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
     <h1 class="text-2xl font-bold mb-6 text-center">従業員ログイン</h1>
-
+    
     <!-- (中略: HTML部分は変更なし) -->
     <label class="block mb-2 font-semibold">ID</label>
     <input id="employee-id" type="text" class="w-full mb-4 px-4 py-2 border rounded-md" placeholder="従業員ID">
     <label class="block mb-2 font-semibold">パスワード</label>
     <input id="employee-password" type="password" class="w-full mb-6 px-4 py-2 border rounded-md" placeholder="パスワード">
-    <button onclick="manualLogin()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md">
-      従来のIDでログイン
-    </button>
-    <div class="relative flex py-5 items-center">
-        <div class="flex-grow border-t border-gray-300"></div>
-        <span class="flex-shrink mx-4 text-gray-400 text-sm">または</span>
-        <div class="flex-grow border-t border-gray-300"></div>
-    </div>
-    <div class="space-y-3">
-        <button id="scan-qr-btn" class="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 px-4 rounded-md">
-          QRコードでログイン
-        </button>
-        <button id="scan-barcode-btn" class="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 px-4 rounded-md">
-          バーコードでログイン
-        </button>
-    </div>
-    <button id="signInMicrosoft" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md mt-5">
-      Microsoftアカウントでサインイン
-    </button>
+    <button onclick="manualLogin()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md">従来のIDでログイン</button>
+    <div class="relative flex py-5 items-center"><div class="flex-grow border-t border-gray-300"></div><span class="flex-shrink mx-4 text-gray-400 text-sm">または</span><div class="flex-grow border-t border-gray-300"></div></div>
+    <div class="space-y-3"><button id="scan-qr-btn" class="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 px-4 rounded-md">QRコードでログイン</button><button id="scan-barcode-btn" class="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 px-4 rounded-md">バーコードでログイン</button></div>
+    <button id="signInMicrosoft" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md mt-5">Microsoftアカウントでサインイン</button>
     <p id="userInfo" class="mt-4 text-sm"></p>
   </div>
 
   <!-- スキャナーのUI -->
   <div id="qr-reader-container" style="display: none;">
+    <div id="scanner-guide-text"></div>
     <div id="qr-reader"></div>
     <div class="scanner-line-overlay"></div>
     <button id="close-scanner-btn">キャンセル</button>
@@ -88,20 +85,10 @@
 
   <script>
     // (MSAL設定など、前半のJSは変更なし)
-    const msalConfig = {
-      auth: { clientId: "c997f97a-5a7f-4ddf-89d4-79f84a1d14fd", authority: "https://login.microsoftonline.com/f26d3362-79fe-4262-817a-531c7cdbf597", redirectUri: "https://misemi-ya.github.io/www.misemi-ya.co.jp/syain.html" },
-      cache: { cacheLocation: "sessionStorage", storeAuthStateInCookie: false }
-    };
+    const msalConfig = { auth: { clientId: "c997f97a-5a7f-4ddf-89d4-79f84a1d14fd", authority: "https://login.microsoftonline.com/f26d3362-79fe-4262-817a-531c7cdbf597", redirectUri: "https://misemi-ya.github.io/www.misemi-ya.co.jp/syain.html" }, cache: { cacheLocation: "sessionStorage", storeAuthStateInCookie: false }};
     const msalInstance = new msal.PublicClientApplication(msalConfig);
     const loginRequest = { scopes: ["openid", "profile", "User.Read"] };
-    function manualLogin() {
-      const id = document.getElementById("employee-id").value;
-      const pw = document.getElementById("employee-password").value;
-      if ((id === "012365498827" && pw === "43386592") || (id === "017446484632" && pw === "11969662")) {
-        console.log("従来のログイン成功！ ページ遷移を開始...");
-        window.location.href = "syain.html";
-      }
-    }
+    function manualLogin() { const id = document.getElementById("employee-id").value; const pw = document.getElementById("employee-password").value; if ((id === "012365498827" && pw === "43386592") || (id === "017446484632" && pw === "11969662")) { console.log("従来のログイン成功！ ページ遷移を開始..."); window.location.href = "syain.html"; } }
     document.getElementById("signInMicrosoft").addEventListener("click", () => msalInstance.loginRedirect(loginRequest));
     msalInstance.handleRedirectPromise().then(response => { if (msalInstance.getActiveAccount()) { console.log("リダイレクトログイン成功！ ページ遷移を開始..."); window.location.href = "syain.html"; } }).catch(err => console.error(err));
 
@@ -110,57 +97,63 @@
     const qrReaderContainer = document.getElementById('qr-reader-container');
     const closeScannerBtn = document.getElementById('close-scanner-btn');
     const lineOverlay = document.querySelector('.scanner-line-overlay');
+    const guideText = document.getElementById('scanner-guide-text');
     const html5QrCode = new Html5Qrcode("qr-reader");
 
-    // ✅ スキャナーの設定値を、携帯画面で最大化されるよう非常に大きく設定
-    const qrConfig = { fps: 10, qrbox: { width: 600, height: 600 } };
-    const barcodeConfig = { fps: 10, qrbox: { width: 800, height: 400 } };
+    // ✅ スキャナーのサイズを、ご要望のあった大きいサイズに戻す
+    const qrConfig = { 
+        fps: 10, 
+        qrbox: { width: 600, height: 600 },
+        formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
+    };
+    const barcodeConfig = { 
+        fps: 10, 
+        qrbox: { width: 800, height: 400 },
+        formatsToSupport: [ Html5QrcodeSupportedFormats.CODE_128 ]
+    };
 
     // スキャン成功時の共通処理
     const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-      console.log(`スキャン成功: ${decodedText}`);
-      const [id, pw] = decodedText.split(':');
-      if (id && pw) {
-        document.getElementById('employee-id').value = id;
-        document.getElementById('employee-password').value = pw;
-        stopScanner();
-        manualLogin();
-      } else {
-        stopScanner();
-        alert('登録されていない、または無効なコードです。「ID:パスワード」の形式のコードを使用してください。');
-      }
+      stopScanner().then(() => {
+        const [id, pw] = decodedText.split(':');
+        if (id && pw) {
+          document.getElementById('employee-id').value = id;
+          document.getElementById('employee-password').value = pw;
+          manualLogin();
+        } else {
+          alert('登録されていない、または無効なコードです。「ID:パスワード」の形式のコードを使用してください。');
+        }
+      });
     };
 
     // スキャナーを起動する共通関数
-    function startScanner(config) {
+    function startScanner(config, text) {
       qrReaderContainer.style.display = 'flex';
-      // ガイド線の幅を、起動する設定の幅に合わせる
       lineOverlay.style.width = `${config.qrbox.width}px`;
+      guideText.innerText = text;
 
       html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
         .catch(err => {
           alert("カメラの起動に失敗しました。カメラのアクセス許可を確認してください。");
-          console.error("カメラを起動できませんでした。", err);
           qrReaderContainer.style.display = 'none';
         });
     }
 
     // スキャナーを停止する共通関数
     function stopScanner() {
-      html5QrCode.stop().then(ignore => {
+      return html5QrCode.stop().then(ignore => {
         qrReaderContainer.style.display = 'none';
       }).catch(err => {
-        console.error("QRコードスキャナーの停止に失敗しました。", err);
         qrReaderContainer.style.display = 'none';
       });
     }
 
-    // 各ボタンに、対応する設定でスキャナーを起動するイベントを割り当てる
+    // 各ボタンにイベントを割り当てる
     document.getElementById('scan-qr-btn').addEventListener('click', () => {
-      startScanner(qrConfig);
+      startScanner(qrConfig, "QRコードを枠内に表示してください");
     });
     document.getElementById('scan-barcode-btn').addEventListener('click', () => {
-      startScanner(barcodeConfig);
+      startScanner(barcodeConfig, "バーコードを赤い線に合わせてください");
     });
     closeScannerBtn.addEventListener('click', stopScanner);
 
