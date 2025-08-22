@@ -8,7 +8,7 @@
     crossorigin="anonymous"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   
-  <!-- ✅ くり抜きと読み取りの問題を修正したスタイル -->
+  <!-- ✅ ライブラリのガイド機能に合わせ、CSSを大幅に簡素化 -->
   <style>
     /* スキャナーUI全体のコンテナ */
     #qr-reader-container {
@@ -26,58 +26,35 @@
     
     /* 実際のカメラ映像を表示するエリア */
     #qr-reader {
-      position: absolute;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      z-index: 1;
+      /* ライブラリが生成する枠線などを非表示にする */
+      border: none !important;
+      box-shadow: none !important;
+    }
+    /* ライブラリが生成する映像自体 */
+    #qr-reader video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover;
     }
 
-    /* ガイド全体のラッパー */
-    #scanner-guide-wrapper {
+    /* ガイドの中央を走る赤い線 (これだけ残す) */
+    .scanner-line-overlay {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      z-index: 2;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 90vw;
-      max-width: 600px;
-      /* ✅ くり抜き効果をbox-shadowで復活させる */
-      box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.6);
-      /* ✅ ガイドが見た目だけで、操作の邪魔をしないようにする */
-      pointer-events: none;
-    }
-
-    /* ガイドの各パーツ（四角）の共通スタイル */
-    .guide-part {
-      border: 3px solid #072a38;
-      background: transparent;
-      box-sizing: border-box;
-    }
-
-    /* ガイドの中央部分 */
-    #guide-center { width: 45%; height: 250px; }
-    /* ガイドの左右部分 */
-    #guide-left, #guide-right { width: 27.5%; height: 180px; }
-    
-    /* ガイドの中央を走る赤い線 */
-    .scanner-line {
-      position: absolute;
-      top: 50%;
-      left: 0;
-      width: 100%;
+      /* JSで指定するqrboxのサイズに合わせる */
+      width: 300px;
       height: 3px;
       background-color: red;
-      transform: translateY(-50%);
+      z-index: 2;
+      pointer-events: none; /* スキャンの邪魔をしない */
     }
 
     /* 赤い線の両端にある緑色の点 */
-    .scanner-line::before, .scanner-line::after {
+    .scanner-line-overlay::before, .scanner-line-overlay::after {
       content: '';
       position: absolute;
       top: 50%;
@@ -87,8 +64,8 @@
       background-color: #00b050;
       border-radius: 50%;
     }
-    .scanner-line::before { left: 0; }
-    .scanner-line::after { right: 0; }
+    .scanner-line-overlay::before { left: -6px; } /* 点が線の中央に来るように調整 */
+    .scanner-line-overlay::after { right: -6px; }
 
     /* キャンセルボタン */
     #close-scanner-btn {
@@ -96,15 +73,13 @@
       bottom: 10vh;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 3; /* ガイドより手前 */
+      z-index: 3;
       padding: 10px 20px;
       background-color: white;
       color: black;
       font-weight: bold;
       border: none;
       border-radius: 4px;
-      /* ✅ ボタンはクリックできるようにpointer-eventsを戻す */
-      pointer-events: auto;
       cursor: pointer;
     }
   </style>
@@ -130,15 +105,10 @@
     <p id="userInfo" class="mt-4 text-sm"></p>
   </div>
 
-  <!-- スキャナーのUI -->
+  <!-- ✅ 自作ガイドを廃止し、シンプルな構造に変更 -->
   <div id="qr-reader-container" style="display: none;">
     <div id="qr-reader"></div>
-    <div id="scanner-guide-wrapper">
-      <div class="guide-part" id="guide-left"></div>
-      <div class="guide-part" id="guide-center"></div>
-      <div class="guide-part" id="guide-right"></div>
-      <div class="scanner-line"></div>
-    </div>
+    <div class="scanner-line-overlay"></div>
     <button id="close-scanner-btn">キャンセル</button>
   </div>
 
@@ -211,6 +181,8 @@
 
     document.getElementById('scan-qr-btn').addEventListener('click', () => {
       qrReaderContainer.style.display = 'flex';
+      
+      // ✅ この設定が、ライブラリに「読み取り範囲のガイド」を表示させる命令です
       const config = { 
         fps: 10, 
         qrbox: { width: 300, height: 100 } 
