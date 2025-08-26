@@ -58,7 +58,6 @@
       font-weight: bold; border: none; border-radius: 4px; cursor: pointer;
     }
 
-    /* ▼▼▼ 追加したスタイル ▼▼▼ */
     /* カメラ切り替えボタン */
     #switch-camera-btn {
       position: absolute; top: 20px; right: 20px;
@@ -70,6 +69,26 @@
       border: 1px solid white;
       border-radius: 4px;
       cursor: pointer;
+    }
+
+    /* ▼▼▼ 追加したスタイル ▼▼▼ */
+    /* 左右反転ボタン */
+    #flip-camera-btn {
+      position: absolute; top: 20px;
+      right: 140px; /* 「カメラ切替」ボタンの隣に配置 */
+      z-index: 3;
+      padding: 8px 16px;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      font-weight: bold;
+      border: 1px solid white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* 映像を左右反転させるためのクラス */
+    #qr-reader video.flipped {
+      transform: scaleX(-1);
     }
     /* ▲▲▲ 追加したスタイル ▲▲▲ */
   </style>
@@ -95,6 +114,7 @@
     <div id="qr-reader"></div>
     <div class="scanner-line-overlay"></div>
     <!-- ▼▼▼ 変更箇所: ボタンを追加 ▼▼▼ -->
+    <button id="flip-camera-btn">左右反転</button>
     <button id="switch-camera-btn">カメラ切替</button>
     <!-- ▲▲▲ 変更箇所 ▲▲▲ -->
     <button id="close-scanner-btn">キャンセル</button>
@@ -113,13 +133,14 @@
 
     const qrReaderContainer = document.getElementById('qr-reader-container');
     const closeScannerBtn = document.getElementById('close-scanner-btn');
-    const switchCameraBtn = document.getElementById('switch-camera-btn'); // カメラ切替ボタンを取得
+    const switchCameraBtn = document.getElementById('switch-camera-btn');
+    const flipCameraBtn = document.getElementById('flip-camera-btn'); // 左右反転ボタンを取得
     const lineOverlay = document.querySelector('.scanner-line-overlay');
     const guideText = document.getElementById('scanner-guide-text');
     const html5QrCode = new Html5Qrcode("qr-reader");
 
-    let currentFacingMode = "environment"; // 現在のカメラの向き (environment:背面, user:前面)
-    let activeConfig = null; // 現在のスキャナー設定を保持する変数
+    let currentFacingMode = "environment"; 
+    let activeConfig = null; 
 
     const qrConfig = { 
         fps: 10, 
@@ -148,12 +169,11 @@
 
     // スキャナーを起動する共通関数
     function startScanner(config, text) {
-      activeConfig = config; // 現在のスキャン設定を保存
+      activeConfig = config;
       qrReaderContainer.style.display = 'flex';
       lineOverlay.style.width = `${config.qrbox.width}px`;
       guideText.innerText = text;
 
-      // 変数 'currentFacingMode' を使ってカメラの向きを指定
       html5QrCode.start({ facingMode: currentFacingMode }, config, qrCodeSuccessCallback)
         .catch(err => {
           alert("カメラの起動に失敗しました。カメラのアクセス許可を確認してください。");
@@ -163,45 +183,58 @@
 
     // スキャナーを停止する共通関数
     function stopScanner() {
-      // isScanningプロパティでスキャン中か確認してから停止処理を行う
       if (html5QrCode.isScanning) {
         return html5QrCode.stop().then(ignore => {
           qrReaderContainer.style.display = 'none';
+          // 停止時に反転状態をリセット
+          const videoElement = document.querySelector('#qr-reader video');
+          if (videoElement) {
+              videoElement.classList.remove('flipped');
+          }
         }).catch(err => {
           console.error("スキャナーの停止に失敗しました。", err);
           qrReaderContainer.style.display = 'none';
         });
       }
-      return Promise.resolve(); // スキャン中でなければ何もしない
+      return Promise.resolve();
     }
 
     // 各ボタンにイベントを割り当てる
     document.getElementById('scan-qr-btn').addEventListener('click', () => {
-      currentFacingMode = "environment"; // 開始時は必ず背面カメラにリセット
+      currentFacingMode = "environment";
       startScanner(qrConfig, "QRコードを枠内に表示してください");
     });
     document.getElementById('scan-barcode-btn').addEventListener('click', () => {
-      currentFacingMode = "environment"; // 開始時は必ず背面カメラにリセット
+      currentFacingMode = "environment";
       startScanner(barcodeConfig, "バーコードを赤い線に合わせてください");
     });
     closeScannerBtn.addEventListener('click', stopScanner);
 
-    // ▼▼▼ 追加した処理 ▼▼▼
     // カメラ切り替えボタンのイベントリスナー
     switchCameraBtn.addEventListener('click', () => {
       if (html5QrCode.isScanning && activeConfig) {
-        // カメラの向きを切り替える (environment ⇔ user)
         currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
         
         html5QrCode.stop()
           .then(() => {
-            // 停止後、新しいカメラの向きでスキャナーを再起動
             startScanner(activeConfig, guideText.innerText);
           })
           .catch(err => {
             alert("カメラの切り替えに失敗しました。");
             console.error("カメラ切り替えエラー:", err);
           });
+      }
+    });
+    
+    // ▼▼▼ 追加した処理 ▼▼▼
+    // 左右反転ボタンのイベントリスナー
+    flipCameraBtn.addEventListener('click', () => {
+      if (html5QrCode.isScanning) {
+        const videoElement = document.querySelector('#qr-reader video');
+        if (videoElement) {
+          // 'flipped' クラスをトグル(付け外し)する
+          videoElement.classList.toggle('flipped');
+        }
       }
     });
     // ▲▲▲ 追加した処理 ▲▲▲
