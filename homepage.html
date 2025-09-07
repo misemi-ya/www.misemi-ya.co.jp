@@ -7,6 +7,105 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* 店魅偉屋大学セクションのスタイル */
+/* 店魅偉屋大学セクションのスタイル */
+#university {
+    padding: 100px 0; /* 上下の余白を増やす */
+    text-align: center;
+}
+
+#university h3 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    display: flex; /* アイコンとテキストを横並びにするため */
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+#university h3::after {
+    background-color: var(--accent-color); /* 下線の色を変更 */
+    width: 90px; /* 下線の幅を広げる */
+}
+
+.university-icon {
+    font-size: 0.8em; /* アイコンのサイズ調整 */
+    margin-left: 15px; /* アイコンとテキストの間隔 */
+    color: var(--accent-color); /* アイコンの色 */
+    transition: transform 0.3s ease; /* ホバーアニメーション */
+}
+
+#university h3:hover .university-icon {
+    transform: rotate(10deg) scale(1.1); /* ホバーでアイコンを少し回転・拡大 */
+}
+
+.university-intro {
+    font-size: 1.15em;
+    max-width: 800px;
+    margin: 0 auto 50px auto; /* 下のボタンとの余白を増やす */
+    line-height: 1.8;
+    color: #555;
+    font-weight: 400;
+}
+
+.university-button-wrapper {
+    margin-top: 40px; /* ボタンの上の余白を調整 */
+}
+
+.btn-university {
+    background-color: var(--accent-color); /* ここを変更 */
+    padding: 20px 45px; /* ボタンのサイズを少し大きく */
+    font-size: 1.3em;
+    border-radius: 10px; /* 角を丸く */
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2); /* 影を強調 */
+}
+
+.btn-university:hover {
+    background-color: #d35400; /* ホバー時の色 (少し濃いオレンジ) */
+    transform: translateY(-5px) scale(1.02); /* ホバー時のアニメーションを強調 */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    color: var(--white-color); /* ホバー時もテキスト色を白に保つ */
+}
+
+/* レスポンシブデザインの調整 */
+@media (max-width: 768px) {
+    #university {
+        padding: 80px 0;
+    }
+    #university h3 {
+        font-size: 2.2em;
+    }
+    .university-intro {
+        font-size: 1.05em;
+        margin-bottom: 30px;
+    }
+    .btn-university {
+        padding: 16px 35px;
+        font-size: 1.15em;
+    }
+}
+
+@media (max-width: 480px) {
+    #university {
+        padding: 60px 0;
+    }
+    #university h3 {
+        font-size: 1.8em;
+    }
+    .university-icon {
+        font-size: 0.7em;
+        margin-left: 10px;
+    }
+    .university-intro {
+        font-size: 1em;
+        margin-bottom: 25px;
+    }
+    .btn-university {
+        padding: 14px 30px;
+        font-size: 1.05em;
+    }
+}
         /* 基本スタイル */
 :root {
     --primary-color: #2c3e50; /* 濃い青系グレー */
@@ -329,6 +428,7 @@ footer p {
                 <ul>
                     <li><a href="#about">会社紹介</a></li>
                     <li><a href="#products">商品一覧</a></li>
+                    <li><a href="#university">店魅偉屋大学</a></li>
                 </ul>
             </nav>
         </div>
@@ -360,7 +460,23 @@ footer p {
                     <a href="https://misemi-ya.github.io/www.misemi-ya.co.jp" class="btn-products" target="_blank" rel="noopener noreferrer">商品一覧サイトへ進む</a>
                 </div>
             </div>
+        
+        <section id="university" class="content-section">
+            <div class="container">
+                <h3>店魅偉屋大学 <span class="university-icon">🎓</span></h3>
+                <p class="university-intro">
+                    「店魅偉屋大学」は、あなたのビジネススキルと創造性を最大限に引き出すための実践的な学びの場です。
+                    最新のマーケティング戦略から、お客様を魅了する商品開発、そして効果的なECサイト運営まで、
+                    明日から使える知識と技術を提供します。私たちと共に、あなたの「お店」を「魅力的」な「偉業」へと導きましょう。
+                </p>
+                <div class="button-wrapper university-button-wrapper">
+                    <a href="https://misemi-ya.github.io/www.misemi-ya.co.jp/university/index.html" class="btn-products btn-university" target="_blank" rel="noopener noreferrer">
+                        店魅偉屋大学ホームページへ
+                    </a>
+                </div>
+            </div>
         </section>
+
     </main>
 
     <footer>
