@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>すいみんぽーたる</title>
+    <!-- 怖いフォントをGoogle Fontsから読み込み -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+    <style>
+        /* === 全体のスタイル === */
+        body {
+            font-family: 'Helvetica Neue', 'Arial', 'Hiragino Sans', 'Meiryo', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* === ヘッダー === */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            position: relative; /* メニューの位置の基準にする */
+        }
+
+        .logo-area { text-align: center; }
+        .logo-area img { max-height: 50px; } /* ロゴ画像のサイズ調整 */
+        .logo-area p { margin: 5px 0 0; color: #555; }
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px; /* 要素間のスペース */
+        }
+        .header-left { font-size: 24px; font-weight: bold; }
+        
+        /* ハンバーガーメニュー */
+        .hamburger-menu {
+            font-size: 30px;
+            cursor: pointer;
+            z-index: 101; /* メニューより手前に */
+        }
+        
+        #side-menu {
+            position: absolute;
+            top: 0;
+            left: -250px; /* 初期状態では画面外 */
+            width: 250px;
+            height: 100vh;
+            background-color: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+            transition: left 0.3s ease;
+            padding-top: 60px;
+            z-index: 100;
+        }
+        #side-menu.open { left: 0; }
+        #side-menu ul { list-style: none; padding: 0; }
+        #side-menu ul li a {
+            display: block;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: #333;
+        }
+        #side-menu ul li a:hover { background-color: #f0f4f8; }
+
+        .header-right a.button {
+            text-decoration: none;
+            color: #fff;
+            background-color: #007bff;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .header-right a.button:hover { background-color: #0056b3; }
+
+        .header-right .admin-link {
+            cursor: pointer;
+            font-weight: bold;
+            color: #dc3545;
+        }
+
+        /* === メインコンテンツのレイアウト === */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr 200px;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            margin-top: 0;
+            font-size: 18px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        
+        /* === 左サイドバー === */
+        .sidebar-left ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar-left ul li a {
+            display: block; padding: 15px; text-decoration: none;
+            color: #333; font-weight: bold; border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .sidebar-left ul li a:hover { background-color: #e9ecef; }
+
+        /* === 中央コンテンツ === */
+        .sleep-manager {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            text-align: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .sleep-manager > div {
+            min-width: 150px;
+        }
+
+        /* 新しいタイマーのスタイル */
+        .timer-section .timer-display {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .timer-section .timer-buttons button {
+            margin: 0 5px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        
+        /* 天気情報のスタイル */
+        #weather-info { text-align: center; }
+        #weather-icon { width: 50px; height: 50px; }
+        #weather-details { font-size: 14px; margin-top: 10px; }
+
+        /* === 右サイドバー === */
+        .scary-ad {
+            font-family: 'Creepster', cursive; /* 怖いフォント */
+            font-size: 24px;
+            color: #a00;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .website-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #28a745;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            box-sizing: border-box;
+            transition: background-color 0.3s;
+        }
+        .website-button:hover { background-color: #218838; }
+
+    </style>
+</head>
+<body>
+
+    <!-- 左側のスライドメニュー -->
+    <nav id="side-menu">
+        <ul>
+            <li><a href="#">メニュー1</a></li>
+            <li><a href="#">設定</a></li>
+            <li><a href="#">ヘルプ</a></li>
+        </ul>
+    </nav>
+    
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <span class="hamburger-menu" id="hamburger-btn">≡</span>
+                <span id="currentTime">00:00</span>
+            </div>
+            
+            <div class="logo-area">
+                <img src="logo.png" alt="すいみんぽーたる ロゴ">
+                <p id="currentDate">1月1日</p>
+            </div>
+            
+            <div class="header-right">
+                <a href="ここにあなたのGoogleフォームのリンクを貼り付け" target="_blank" class="button">お問い合わせ</a>
+                <span id="admin-link" class="admin-link">管理画面</span>
+            </div>
+        </header>
+
+        <main class="main-grid">
+            
+            <aside class="sidebar-left">
+                <div class="card">
+                    <ul>
+                        <li><a href="https://amb-uranai.ameba.jp" target="_blank">占い</a></li>
+                        <li><a href="https://jp.piliapp.com/random/wheel" target="_blank">ルーレット</a></li>
+                    </ul>
+                </div>
+            </aside>
+            
+            <section class="main-content">
+                <div class="card">
+                    <h2>睡眠管理</h2>
+                    <div class="sleep-manager">
+                        <div>
+                            <span>昨日寝た時間</span>
+                            <div style="font-size: 32px; font-weight: bold;">00:00</div>
+                        </div>
+                        
+                        <!-- タイマーセクション -->
+                        <div class="timer-section">
+                             <span>タイマー</span>
+                             <div id="timer-display" class="timer-display">00:00</div>
+                             <div class="timer-buttons">
+                                 <button id="start-btn">▶</button>
+                                 <button id="stop-btn">❚❚</button>
+                                 <button id="reset-btn">⟲</button>
+                             </div>
+                        </div>
+                        
+                        <!-- 天気セクション -->
+                        <div>
+                            <span>明日の天気</span>
+                            <div id="weather-info">
+                                <p>位置情報を取得中...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 他のカード... -->
+            </section>
+            
+            <aside class="sidebar-right">
+                <div class="card">
+                    <h2>広告</h2>
+                    <div class="scary-ad">やばいサイト見つけちゃった...</div>
+                </div>
+                 <div class="card">
+                    <h2>ウェブサイト</h2>
+                    <a href="https://kichigai-web-ichiran.github.io/www.kichigai-web-ichiran.com" target="_blank" class="website-button">一覧を見る</a>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <script>
+        // === 1. 基本機能（時計・日付） ===
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const month = now.getMonth() + 1;
+            const date = now.getDate();
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+            document.getElementById('currentDate').textContent = `${month}月${date}日`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // === 2. ハンバーガーメニュー機能 ===
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const sideMenu = document.getElementById('side-menu');
+        hamburgerBtn.addEventListener('click', () => {
+            sideMenu.classList.toggle('open');
+        });
+
+        // === 3. 管理画面パスワード機能 ===
+        document.getElementById('admin-link').addEventListener('click', () => {
+            const password = prompt('パスワードを入力してください:');
+            if (password === 'cpdw6531') {
+                alert('認証成功！管理画面に移動します。');
+                // window.location.href = 'admin.html'; // 実際の管理画面URL
+            } else if (password !== null) { // キャンセルボタン以外
+                alert('パスワードが違います。');
+            }
+        });
+
+        // === 4. タイマー機能 ===
+        const timerDisplay = document.getElementById('timer-display');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        
+        let timerInterval;
+        let seconds = 0;
+
+        function formatTime(sec) {
+            const minutes = String(Math.floor(sec / 60)).padStart(2, '0');
+            const seconds = String(sec % 60).padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        }
+
+        startBtn.addEventListener('click', () => {
+            if (!timerInterval) { // 動いていない時だけ実行
+                timerInterval = setInterval(() => {
+                    seconds++;
+                    timerDisplay.textContent = formatTime(seconds);
+                }, 1000);
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            clearInterval(timerInterval);
+            timerInterval = null; // intervalをリセット
+        });
+        
+        resetBtn.addEventListener('click', () => {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            seconds = 0;
+            timerDisplay.textContent = formatTime(seconds);
+        });
+
+        // === 5. 天気情報取得機能 ===
+        document.addEventListener('DOMContentLoaded', () => {
+            const apiKey = 'ここにあなたのOpenWeatherMap APIキーを貼り付け'; // ★★★★★ここにAPIキーを入力★★★★★
+            
+            if (!apiKey || apiKey === '0bc6664fec9803f8e6bfd5f918233fb0') {
+                document.getElementById('weather-info').innerHTML = '<p style="color:red;">APIキーが設定されていません。</p>';
+                return;
+            }
+
+            // ユーザーの位置情報を取得
+            navigator.geolocation.getCurrentPosition(
+                (position) => { // 成功した場合
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    getWeather(lat, lon, apiKey);
+                },
+                () => { // 失敗した場合
+                    document.getElementById('weather-info').innerHTML = '<p>位置情報を許可してください。</p>';
+                }
+            );
+        });
+
+        async function getWeather(lat, lon, apiKey) {
+            // ウェザーニュースのAPIは一般公開されていないため、代替としてOpenWeatherMap APIを使用します
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`;
+            
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('天気情報の取得に失敗しました。');
+                
+                const data = await response.json();
+                
+                const weatherInfoDiv = document.getElementById('weather-info');
+                weatherInfoDiv.innerHTML = `
+                    <img id="weather-icon" src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" alt="天気アイコン">
+                    <div id="weather-main">${data.weather[0].description}</div>
+                    <div id="weather-details">
+                        気温: ${Math.round(data.main.temp)}℃ (最高:${Math.round(data.main.temp_max)}℃ / 最低:${Math.round(data.main.temp_min)}℃)<br>
+                        湿度: ${data.main.humidity}%
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('weather-info').innerHTML = `<p>${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
