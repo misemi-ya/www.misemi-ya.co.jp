@@ -64,6 +64,7 @@
     </div>
 
     <!-- ログイン判定のスクリプト -->
+<!-- ログイン判定のスクリプト -->
     <script>
         function checkLogin(event) {
             // フォームの通常送信（画面リロード）をキャンセル
@@ -73,11 +74,13 @@
             const inputPass = document.getElementById('passwordInput').value;
             const errorMsg = document.getElementById('error-msg');
 
-            // --- ここでパスワードを設定します ---
-            const correctPass = "dr0626gs241";
-            // ----------------------------------
+            // --- ここでパスワードを複数設定します ---
+            // [] の中に "" で囲んでカンマ(,)で区切って記述します
+            const correctPasses = ["dr0626gs241", "ky0626th241", "adminuser", "ky0908th224"]; 
+            // ----------------------------------------
 
-            if (inputPass === correctPass) {
+            // 入力されたパスワードがリストの中に含まれているかチェック (includes)
+            if (correctPasses.includes(inputPass)) {
                 // 正解の場合：成功ページへ移動
                 window.location.href = "https://misemi-ya.github.io/www.misemi-ya.co.jp/university/login/home.html";
             } else {
@@ -89,7 +92,4 @@
         }
     </script>
 </body>
-
 </html>
-
-
