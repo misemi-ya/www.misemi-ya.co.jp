@@ -63,7 +63,8 @@
         #loading-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255,255,255,0.95); z-index: 9999;
-            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            display: none; /* 初期は非表示(VPNチェックが先) */
+            justify-content: center; align-items: center; flex-direction: column;
             backdrop-filter: blur(10px); transition: opacity 0.5s ease;
         }
         .spinner {
@@ -79,6 +80,7 @@
             min-height: 100vh; opacity: 0; transition: opacity 0.8s ease;
         }
 
+        /* サイドバー */
         .sidebar {
             background: var(--primary-color); color: white;
             padding: 2rem 1.5rem; display: flex; flex-direction: column;
@@ -108,6 +110,7 @@
         }
         .nav-text-en { font-size: 0.7rem; display: block; opacity: 0.6; margin-top: 2px; }
 
+        /* メインコンテンツ */
         .main-content { padding: 2rem 3rem; overflow-y: auto; }
 
         .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
@@ -128,12 +131,14 @@
             font-size: 1.2rem; transition: transform 0.2s;
         }
 
+        /* グラスカード共通 */
         .glass-card {
             background: var(--glass-bg); border-radius: 16px; padding: 1.5rem;
             box-shadow: var(--shadow); border: var(--glass-border);
             backdrop-filter: blur(12px); position: relative;
         }
         
+        /* ダッシュボードグリッド */
         .dashboard-grid {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;
             margin-bottom: 2rem;
@@ -171,7 +176,7 @@
         .section-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem; color: #444; border-left: 4px solid var(--accent-color); padding-left: 10px; }
         
         .services-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;
         }
         .service-card {
             background: white; padding: 1.2rem; border-radius: 12px;
@@ -212,6 +217,7 @@
         .edit-mode .editable-text { border: 2px dashed #ff5500; background: rgba(255, 85, 0, 0.05); cursor: text; padding: 2px 5px; border-radius: 4px; }
         .edit-mode .chart-container { cursor: pointer; border: 2px dashed #ff5500; }
         
+        /* 汎用モーダル (グラフ編集・アプリ表示用) */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .edit-panel { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -245,7 +251,7 @@
     </div>
 
     <!-- ローディング -->
-    <div id="loading-screen" style="display:none;">
+    <div id="loading-screen">
         <div class="spinner"></div>
         <h3 style="margin: 20px 0 5px 0; color:#333;">ログイン中</h3>
         <span style="font-size:0.8rem; color:#888; letter-spacing:1px;">LOGGING IN...</span>
@@ -260,10 +266,12 @@
                 <div class="brand-text">店魅偉屋大学</div>
                 <div class="brand-sub">Misemi-ya University</div>
             </div>
+            
             <ul class="nav-menu">
                 <li class="nav-item">
                     <a href="l.html" class="nav-link active"><i class="fa-solid fa-chart-pie"></i><div>ダッシュボード<span class="nav-text-en">Dashboard</span></div></a>
                 </li>
+                
                 <div class="nav-category">Applications</div>
                 <li class="nav-item">
                     <a href="mail.html" class="nav-link"><i class="fa-solid fa-envelope"></i><div>Webメール<span class="nav-text-en">Web Mail</span></div></a>
@@ -277,6 +285,7 @@
                 <li class="nav-item">
                     <a onclick="openApp('groupware')" class="nav-link"><i class="fa-solid fa-sitemap"></i><div>グループウェア<span class="nav-text-en">Groupware</span></div></a>
                 </li>
+
                 <div class="nav-category">Management</div>
                 <li class="nav-item">
                     <a onclick="openApp('hr')" class="nav-link"><i class="fa-solid fa-user-tie"></i><div>人事・総務<span class="nav-text-en">HR & Admin</span></div></a>
@@ -495,8 +504,38 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // ==========================================
+        //  VPNチェック
+        // ==========================================
+        const VPN_HOST = 'public-vpn-129.opengw.net';
+        function getSubnet(ip) { return ip ? ip.split('.').slice(0,3).join('.') : ""; }
+        async function verifyConnection() {
+            try {
+                const ipRes = await fetch('https://api.ipify.org?format=json');
+                const myIp = (await ipRes.json()).ip;
+                const dnsRes = await fetch(`https://dns.google/resolve?name=${VPN_HOST}&type=A`);
+                const vpnIp = (await dnsRes.json()).Answer?.[0]?.data || "Unresolved";
+
+                if (vpnIp!=="Unresolved" && getSubnet(myIp)===getSubnet(vpnIp)) {
+                    document.getElementById('vpn-lock-screen').style.opacity = '0';
+                    setTimeout(() => { 
+                        document.getElementById('vpn-lock-screen').style.display = 'none'; 
+                        // VPNチェックOKなら、ここでメイン処理を開始する（ローディング表示）
+                        startMainApp(); 
+                    }, 500);
+                } else {
+                    document.getElementById('vpn-checking').style.display = 'none';
+                    document.getElementById('vpn-error').style.display = 'block';
+                    document.getElementById('user-ip').textContent = myIp;
+                }
+            } catch (e) { document.getElementById('vpn-error').style.display = 'block'; document.getElementById('user-ip').textContent = "Error"; }
+        }
+
+        // ==========================================
+        //  メインアプリケーション処理
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAuj26lGBWGdcfiLoiCl8s0jTQN3UBu_iM",
             authDomain: "misemiya-portal.firebaseapp.com",
@@ -527,30 +566,7 @@
         let myChartInstance = null;
         let currentUserEmail = "";
 
-        // ==========================================
-        //  VPNチェック
-        // ==========================================
-        const VPN_HOST = 'public-vpn-129.opengw.net';
-        function getSubnet(ip) { return ip ? ip.split('.').slice(0,3).join('.') : ""; }
-        async function verifyConnection() {
-            try {
-                const ipRes = await fetch('https://api.ipify.org?format=json');
-                const myIp = (await ipRes.json()).ip;
-                const dnsRes = await fetch(`https://dns.google/resolve?name=${VPN_HOST}&type=A`);
-                const vpnIp = (await dnsRes.json()).Answer?.[0]?.data || "Unresolved";
-
-                if (vpnIp!=="Unresolved" && getSubnet(myIp)===getSubnet(vpnIp)) {
-                    document.getElementById('vpn-lock-screen').style.opacity = '0';
-                    document.getElementById('loading-screen').style.display = 'flex';
-                    setTimeout(() => { document.getElementById('vpn-lock-screen').style.display = 'none'; startMainApp(); }, 500);
-                } else {
-                    document.getElementById('vpn-checking').style.display = 'none';
-                    document.getElementById('vpn-error').style.display = 'block';
-                    document.getElementById('user-ip').textContent = myIp;
-                }
-            } catch (e) { document.getElementById('vpn-error').style.display = 'block'; document.getElementById('user-ip').textContent = "Error"; }
-        }
-
+        // Global exports
         window.toggleEditMode = toggleEditMode;
         window.saveChartData = saveChartData;
         window.closeModal = closeModal;
@@ -560,67 +576,92 @@
         window.openApp = openApp;
         window.closeAppModal = closeAppModal;
 
-        window.addEventListener('load', verifyConnection);
+        // ページ読み込み時はまずVPNチェック
+        window.addEventListener('load', () => {
+            verifyConnection();
+        });
 
-async function startMainApp() {
-    gapi.load('client', initializeGapiClient);
-    
-    try {
-        if (typeof myMSALObj !== 'undefined') {
-            // ✅ 修正ポイント1: MSALのリダイレクト処理が完了するのを「必ず」待つ
-            await myMSALObj.handleRedirectPromise();
+        // VPN通過後に呼ばれるメイン処理 (修正版)
+        async function startMainApp() {
+            // ローディング画面を表示
+            document.getElementById('loading-screen').style.display = 'flex';
 
-            // ✅ 修正ポイント2: 待機したあとにアカウントを確認する
-            const accounts = myMSALObj.getAllAccounts();
+            gapi.load('client', initializeGapiClient);
             
-            if (accounts.length > 0) {
-                // ログイン成功時の処理
-                const user = accounts[0];
-                currentUserEmail = user.username;
-                setupUser(user);
-                
-                // 画面を表示する
-                document.getElementById('loading-screen').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('loading-screen').style.display = 'none';
-                    document.getElementById('mainApp').style.display = 'grid';
-                    setTimeout(() => { document.getElementById('mainApp').style.opacity = '1'; }, 50);
-                }, 500);
-            } else {
-                // ✅ 本当にログインしていない時だけ index.html へ飛ばす
-                window.location.href = "index.html";
+            onValue(dbRef, (snapshot) => {
+                const data = snapshot.val();
+                if(data) {
+                    portalData = data;
+                    updateUI(portalData);
+                } else {
+                    saveToCloud();
+                }
+            });
+            initChart();
+
+            try {
+                // ★★★ 最重要修正ポイント ★★★
+                // Microsoft認証情報を確認する
+                if (typeof myMSALObj !== 'undefined') {
+                    // リダイレクト処理が終わるのを待つ
+                    await myMSALObj.handleRedirectPromise();
+                    
+                    const accounts = myMSALObj.getAllAccounts();
+                    
+                    if (accounts.length > 0) {
+                        // ログイン済みの場合
+                        const user = accounts[0];
+                        currentUserEmail = user.username;
+                        setupUser(user);
+                        
+                        // 画面表示へ切り替え
+                        setTimeout(() => {
+                            document.getElementById('loading-screen').style.opacity = '0';
+                            setTimeout(() => {
+                                document.getElementById('loading-screen').style.display = 'none';
+                                document.getElementById('mainApp').style.display = 'grid'; 
+                                setTimeout(() => document.getElementById('mainApp').style.opacity = '1', 50);
+                            }, 500);
+                        }, 1000);
+                    } else {
+                        // 未ログインの場合のみ飛ばす
+                        window.location.href = "index.html"; 
+                    }
+                }
+            } catch (e) { 
+                console.error("Login Error:", e); 
+                window.location.href = "index.html"; 
             }
         }
-    } catch (e) {
-        console.error("Auth Error:", e);
-        window.location.href = "index.html";
-    }
-}
-
 
         async function initializeGapiClient() {
             await gapi.client.init({ discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest"] });
             gapiInited = true;
             tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/gmail.readonly',
-                callback: async (r) => { if(!r.error) { localStorage.setItem('gmail_linked_'+currentUserEmail, 'true'); await listGmailMessages(); } }
+                client_id: GOOGLE_CLIENT_ID,
+                scope: 'https://www.googleapis.com/auth/gmail.readonly',
+                callback: async (resp) => {
+                    if (resp.error) return;
+                    await listGmailMessages();
+                },
             });
             gisInited = true;
         }
+
         function handleGmailAuth() { tokenClient.requestAccessToken({prompt: 'consent'}); }
 
         async function listGmailMessages() {
             try {
-                const labels = await gapi.client.gmail.users.labels.get({ userId:'me', id:'INBOX' });
+                const labels = await gapi.client.gmail.users.labels.get({ userId: 'me', id: 'INBOX' });
                 document.getElementById('stat1-val').textContent = labels.result.messagesUnread;
                 document.getElementById('gmailAuthBtn').innerHTML = '<i class="fa-solid fa-check"></i> 連携済み';
-                const msgs = await gapi.client.gmail.users.messages.list({ userId:'me', maxResults: 3 });
+                const msgs = await gapi.client.gmail.users.messages.list({ userId: 'me', maxResults: 3 });
                 if (msgs.result.messages) {
                     const con = document.getElementById('news-container');
                     if(con.innerHTML.includes('最新のGmail')) return;
                     let html = '<h4 style="margin:10px 0 5px 0; color:#d93025;"><i class="fa-brands fa-google"></i> 最新のGmail</h4><ul style="list-style:none; padding:0;">';
                     for (const m of msgs.result.messages) {
-                        const d = await gapi.client.gmail.users.messages.get({ userId:'me', id:m.id });
+                        const d = await gapi.client.gmail.users.messages.get({ userId: 'me', id: m.id });
                         const h = d.result.payload.headers;
                         html += `<li class="news-item" style="border-left:3px solid #d93025; padding-left:10px;"><b>${h.find(x=>x.name==='Subject')?.value||'(無題)'}</b></li>`;
                     }
@@ -633,8 +674,12 @@ async function startMainApp() {
             document.getElementById("userName").textContent = user.name || "職員";
             document.getElementById("userInitial").textContent = (user.name || "U").charAt(0);
             updateGreeting(user.name);
-            if (user.username && user.username.toLowerCase() === ADMIN_EMAIL.toLowerCase()) document.getElementById("adminControls").style.display = "block";
-                   const safeEmail = user.username.replace(/\./g, '_');
+            if (user.username && user.username.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+                document.getElementById("adminControls").style.display = "block";
+            }
+            
+            // ログ保存
+            const safeEmail = user.username.replace(/\./g, '_');
             const now = new Date();
             push(ref(db, 'accessLogs'), {
                 user: user.name,
@@ -644,6 +689,7 @@ async function startMainApp() {
                 timeString: now.toLocaleString('ja-JP')
             });
         }
+
         function updateGreeting(name) {
             const h = new Date().getHours();
             const g = h<12 ? "Good Morning" : (h<18 ? "Good Afternoon" : "Good Evening");
@@ -662,6 +708,7 @@ async function startMainApp() {
                 myChartInstance.update();
             }
         }
+
         function saveToCloud() {
             if(!portalData.stats) portalData.stats = {};
             portalData.stats.s2 = document.getElementById('stat2-val').textContent;
@@ -670,6 +717,7 @@ async function startMainApp() {
             portalData.chartTitle = document.getElementById('chart-title').textContent;
             set(dbRef, portalData).catch(e => console.error(e));
         }
+
         function toggleEditMode() {
             isEditMode = !isEditMode;
             const fab = document.querySelector('.admin-fab');
@@ -686,17 +734,21 @@ async function startMainApp() {
                 saveToCloud();
             }
         }
+
         function setupChartInputs() {
             const div = document.getElementById('chartInputs'); div.innerHTML = '';
             const data = portalData.chartData || [0,0,0,0,0,0,0];
             const lbs = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
             data.forEach((v,i) => { div.innerHTML += `<div style="margin-bottom:10px;"><label>${lbs[i]}</label><input type="number" class="panel-input chart-val" value="${v}"></div>`; });
         }
+
         function saveChartData() {
             const arr = []; document.querySelectorAll('.chart-val').forEach(i => arr.push(Number(i.value)));
             portalData.chartData = arr; saveToCloud(); closeModal();
         }
+
         function closeModal() { document.getElementById('chartModal').style.display='none'; }
+        
         function initChart() {
             const ctx = document.getElementById('myChart').getContext('2d');
             myChartInstance = new Chart(ctx, { type: 'line', data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ data: [], borderColor: '#003366', backgroundColor: 'rgba(0,51,102,0.1)', fill: true }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
@@ -723,7 +775,6 @@ async function startMainApp() {
             const c = document.getElementById('appContent');
             m.style.display = 'flex';
             
-            // アプリ内容の生成
             switch(name) {
                 case 'payroll': t.textContent='給与明細'; c.innerHTML='<div style="border:1px solid #ddd; padding:10px;"><h4>2026年1月支給</h4><table class="app-table"><tr><th>項目</th><th>金額</th></tr><tr><td>基本給</td><td>¥300,000</td></tr><tr><td>支給計</td><td>¥350,000</td></tr></table></div>'; break;
                 case 'expense': t.textContent='経費精算'; c.innerHTML='<div class="panel-input-group"><label>金額</label><input type="number" class="panel-input"></div><button class="panel-btn" onclick="alert(\'申請しました\')">申請</button>'; break;
