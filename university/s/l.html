@@ -198,25 +198,37 @@
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="#" class="nav-link active">
+                    <a href="l.html" class="nav-link active">
                         <i class="fa-solid fa-chart-pie"></i>
                         <div>ダッシュボード<span class="nav-text-en">Dashboard</span></div>
                     </a>
                 </li>
+                <!-- リンク先を実際のファイルに変更 -->
                 <li class="nav-item">
                     <a href="mail.html" class="nav-link">
                         <i class="fa-solid fa-envelope"></i>
                         <div>Webメール<span class="nav-text-en">Mail Box</span></div>
                     </a>
                 </li>
-                <!-- 省略 -->
+                <li class="nav-item">
+                    <a href="reserve.html" class="nav-link">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        <div>施設予約<span class="nav-text-en">Reservations</span></div>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="students.html" class="nav-link">
+                        <i class="fa-solid fa-user-graduate"></i>
+                        <div>学生検索<span class="nav-text-en">Students</span></div>
+                    </a>
+                </li>
             </ul>
         </aside>
 
         <main class="main-content">
             <div class="header-area">
                 <div class="greeting">
-                    <h1 id="greetingText">Welcome back.</h1>
+                    <h1 id="greetingText">Welcome back</h1>
                     <div style="font-size:0.9rem; color:#666; margin-top:5px;">
                         <span id="clockDisplay">Checking time...</span>
                     </div>
@@ -313,9 +325,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // ==========================================
-        //  ▼▼▼ Firebase 設定 ▼▼▼
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAuj26lGBWGdcfiLoiCl8s0jTQN3UBu_iM",
             authDomain: "misemiya-portal.firebaseapp.com",
@@ -331,19 +340,14 @@
         const db = getDatabase(app);
         const dbRef = ref(db, 'portalData');
 
-        // ==========================================
-        //  ▼▼▼ Google (Gmail) 設定 ▼▼▼
-        //  ここに手順1で取得した「クライアントID」を入れてください
-        // ==========================================
+        // Google Client ID
         const GOOGLE_CLIENT_ID = "385803166778-kg041ijpug65vf8ir68tubl8v804ncef.apps.googleusercontent.com"; 
         
         let tokenClient;
         let gapiInited = false;
         let gisInited = false;
+        let currentUserEmail = "";
 
-        // ==========================================
-        //  管理者設定・データ変数
-        // ==========================================
         const ADMIN_EMAIL = "u0626241@edu-misemi-ya.ddo.jp";
         let isEditMode = false;
         let portalData = {
@@ -360,14 +364,9 @@
         window.signOut = signOut;
         window.handleGmailAuth = handleGmailAuth;
 
-        // ==========================================
-        //  1. 起動処理
-        // ==========================================
         window.addEventListener('load', async () => {
-            // Google APIの読み込み
             gapi.load('client', initializeGapiClient);
             
-            // Firebase受信
             onValue(dbRef, (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
@@ -378,13 +377,28 @@
 
             initChart();
             
-            // MSALログイン確認
             try {
                 if (typeof myMSALObj !== 'undefined') {
                     await myMSALObj.handleRedirectPromise();
                     const accounts = myMSALObj.getAllAccounts();
                     if (accounts.length > 0) {
-                        setupUser(accounts[0]);
+                        const user = accounts[0];
+                        currentUserEmail = user.username; // 現在のユーザーIDを保持
+                        setupUser(user);
+                        
+                        // ★ Gmail連携状態のチェック
+                        const isLinked = localStorage.getItem('gmail_linked_' + currentUserEmail);
+                        if (isLinked === 'true') {
+                            // 連携済みなら、API準備完了を待って自動取得を試みる
+                            const checkGapi = setInterval(() => {
+                                if(gisInited && gapiInited) {
+                                    clearInterval(checkGapi);
+                                    // サイレントにトークン取得を試みる（許可済みならポップアップ出ない）
+                                    tokenClient.requestAccessToken({prompt: ''});
+                                }
+                            }, 500);
+                        }
+
                         setTimeout(() => {
                             document.getElementById('loading-screen').style.opacity = '0';
                             setTimeout(() => {
@@ -402,9 +416,6 @@
             }
         });
 
-        // ==========================================
-        //  2. Google / Gmail 連携処理
-        // ==========================================
         async function initializeGapiClient() {
             await gapi.client.init({
                 discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest"],
@@ -422,6 +433,8 @@
                         if (resp.error !== undefined) {
                             throw (resp);
                         }
+                        // ★ 連携成功時にフラグを保存
+                        localStorage.setItem('gmail_linked_' + currentUserEmail, 'true');
                         await listGmailMessages();
                     },
                 });
@@ -434,46 +447,36 @@
                 alert("Google機能の初期化中です。少々お待ちください。");
                 return;
             }
-            // Googleログインポップアップを表示
             tokenClient.requestAccessToken({prompt: 'consent'});
         }
 
         async function listGmailMessages() {
             try {
-                // 未読数を取得
-                const labelsResponse = await gapi.client.gmail.users.labels.get({
-                    'userId': 'me',
-                    'id': 'INBOX'
-                });
+                const labelsResponse = await gapi.client.gmail.users.labels.get({ 'userId': 'me', 'id': 'INBOX' });
                 const unreadCount = labelsResponse.result.messagesUnread;
                 
-                // 画面更新
                 document.getElementById('stat1-val').textContent = unreadCount;
-                document.getElementById('gmailAuthBtn').innerHTML = '<i class="fa-solid fa-check"></i> 連携済み';
-                document.getElementById('gmailAuthBtn').style.color = 'green';
-                document.getElementById('gmailAuthBtn').style.borderColor = 'green';
-                document.getElementById('gmailAuthBtn').style.background = 'rgba(0,128,0,0.1)';
+                const btn = document.getElementById('gmailAuthBtn');
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> 連携済み';
+                btn.style.color = 'green';
+                btn.style.borderColor = 'green';
+                btn.style.background = 'rgba(0,128,0,0.1)';
 
-                // 最新メールを取得してお知らせ欄に追加
-                const response = await gapi.client.gmail.users.messages.list({
-                    'userId': 'me',
-                    'maxResults': 3
-                });
+                const response = await gapi.client.gmail.users.messages.list({ 'userId': 'me', 'maxResults': 3 });
                 
                 const messages = response.result.messages;
                 if (messages && messages.length > 0) {
                     const container = document.getElementById('news-container');
+                    // 重複追加防止
+                    if(container.innerHTML.includes('最新のGmail')) return;
+
                     let gmailHtml = '<h4 style="margin:10px 0 5px 0; color:#d93025; font-size:0.8rem;"><i class="fa-brands fa-google"></i> 最新のGmail</h4><ul style="list-style:none; padding:0; margin-bottom:15px;">';
                     
                     for (const msg of messages) {
-                        const msgDetails = await gapi.client.gmail.users.messages.get({
-                            'userId': 'me',
-                            'id': msg.id
-                        });
+                        const msgDetails = await gapi.client.gmail.users.messages.get({ 'userId': 'me', 'id': msg.id });
                         const headers = msgDetails.result.payload.headers;
                         const subject = headers.find(h => h.name === 'Subject')?.value || '(件名なし)';
                         const date = headers.find(h => h.name === 'Date')?.value || '';
-                        // 日付を短くする
                         const shortDate = new Date(date).toLocaleDateString('ja-JP');
 
                         gmailHtml += `
@@ -484,30 +487,15 @@
                         `;
                     }
                     gmailHtml += '</ul><hr style="border:none; border-top:1px dashed #ddd;">';
-                    
-                    // 既存のお知らせの上に追加
                     container.innerHTML = gmailHtml + container.innerHTML;
                 }
-
-            } catch (err) {
-                console.error(err);
-                alert("Gmail情報の取得に失敗しました");
-            }
+            } catch (err) { console.error(err); }
         }
 
-
-        // ==========================================
-        //  3. その他のUI更新・保存処理
-        // ==========================================
         function updateUI(data) {
-            // Gmail連携部分はローカルの情報を優先するため、stat1は上書きしない
-            const currentGmail = document.getElementById('stat1-val').textContent;
-            // 数値でない（"Loading..."や"..."）ならDBの値を入れる
-            if(isNaN(currentGmail)) {
-                // document.getElementById('stat1-val').textContent = data.stats.s1; 
-                // ↑ Gmail連携ボタンがあるので、初期値はプレースホルダーにしておく
+            if(isNaN(document.getElementById('stat1-val').textContent)) {
+                // Gmail未連携時のみダミー
             }
-
             document.getElementById('stat2-val').textContent = data.stats.s2;
             document.getElementById('stat3-val').textContent = data.stats.s3;
             document.getElementById('stat4-val').textContent = data.stats.s4;
@@ -518,13 +506,8 @@
                 myChartInstance.update();
             }
 
-            if (data.news) {
+            if (data.news && !document.getElementById('news-container').innerHTML.includes('最新のGmail')) {
                 const container = document.getElementById('news-container');
-                // Gmailの表示がある場合はそれを消さないように注意が必要だが
-                // 今回は簡易的にFirebaseのデータで上書きし、Gmail取得時に追記する形にする
-                // (すでにGmailが表示されているかチェック)
-                const hasGmail = container.innerHTML.includes('最新のGmail');
-                
                 let baseHtml = '<ul style="list-style:none; padding:0;">' + 
                     data.news.map(item => `
                         <li class="news-item editable-text">
@@ -533,24 +516,17 @@
                             <div style="font-size:0.75rem; color:#999; margin-top:5px;">${item.date}</div>
                         </li>
                     `).join('') + '</ul>';
-                
-                if(hasGmail) {
-                    // Gmail部分を保持したい場合は複雑になるため、再取得ボタンを押してもらう運用が簡単
-                }
-                container.innerHTML = baseHtml; // いったん上書き
+                container.innerHTML = baseHtml;
                 if(isEditMode) setupEditEvents();
             }
         }
 
-        // 保存機能（以前と同じ）
         function saveToCloud() {
             if(!portalData.stats) portalData.stats = {};
-            // stat1 (Gmail) は保存しない
             portalData.stats.s2 = document.getElementById('stat2-val').textContent;
             portalData.stats.s3 = document.getElementById('stat3-val').textContent;
             portalData.stats.s4 = document.getElementById('stat4-val').textContent;
             portalData.chartTitle = document.getElementById('chart-title').textContent;
-            
             set(dbRef, portalData).catch(e => alert("保存エラー"));
         }
 
@@ -652,7 +628,11 @@
             if(h<12) g="Good Morning";
             else if(h<18) g="Good Afternoon";
             else g="Good Evening";
-            document.getElementById('greetingText').innerHTML = `${g}, <span style="color:var(--primary-color)">${name}</span>.<span class="en-sub" style="font-size:0.5em; margin-top:5px;">MISEMI-YA UNIVERSITY STAFF PORTAL</span>`;
+            
+            // ★ カンマとドットの削除
+            document.getElementById('greetingText').innerHTML = 
+                `${g} <span style="color:var(--primary-color)">${name}</span>
+                 <span class="en-sub" style="font-size:0.5em; margin-top:5px;">MISEMI-YA UNIVERSITY STAFF PORTAL</span>`;
         }
         
         setInterval(() => {
