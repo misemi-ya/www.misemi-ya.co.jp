@@ -44,7 +44,26 @@
             margin-top: 2px; text-transform: uppercase;
         }
 
-        /* ローディング画面 */
+        /* ▼▼▼ VPNロック画面 (最前面) ▼▼▼ */
+        #vpn-lock-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 10000; /* Loadingより上 */
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-family: sans-serif; transition: opacity 0.5s;
+        }
+        /* VPNチェック中の表示 */
+        #vpn-checking { font-size: 1.2rem; color: #555; }
+        
+        /* 403 エラー表示 */
+        #vpn-error { display: none; text-align: center; }
+        .error-code { font-size: 8rem; font-weight: bold; color: #333; margin: 0; }
+        .error-msg { font-size: 1.5rem; color: #666; margin-bottom: 20px; }
+        .error-desc { color: #888; font-size: 0.9rem; margin-bottom: 30px; }
+        .status-box { background: #f0f0f0; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.8rem; color: #555; text-align: left; width: 250px; margin: 0 auto; }
+        .status-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .status-val { font-weight: bold; }
+
+        /* ▼▼▼ ローディング画面 (VPN通過後に表示) ▼▼▼ */
         #loading-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255,255,255,0.95); z-index: 9999;
@@ -208,20 +227,47 @@
         .panel-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         .panel-btn { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         
-        /* アプリモーダル内のスタイル */
         .app-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         .app-table th, .app-table td { border-bottom: 1px solid #eee; padding: 10px; text-align: left; }
         .app-table th { background: #f8f9fa; color: #555; font-size: 0.9rem; }
     </style>
 </head>
 <body>
-    <div id="loading-screen">
+
+    <!-- VPNロック画面 -->
+    <div id="vpn-lock-screen">
+        <!-- チェック中 -->
+        <div id="vpn-checking">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> Security Checking...
+        </div>
+
+        <!-- 403 Access Denied (VPN不一致時のみ表示) -->
+        <div id="vpn-error">
+            <div class="error-code">403</div>
+            <div class="error-msg">Access Denied</div>
+            <p class="error-desc">
+                Your connection does not meet the security requirements.<br>
+                Please connect via the specified VPN network.
+            </p>
+            <div class="status-box">
+                <div class="status-row">
+                    <span>Your IP:</span>
+                    <span id="user-ip" class="status-val">...</span>
+                </div>
+            </div>
+            <p style="font-size:0.7rem; color:#ccc; margin-top:5px;">Misemi-ya Univ. Security Sys.</p>
+        </div>
+    </div>
+
+    <!-- 通常のローディング (VPN通過後) -->
+    <div id="loading-screen" style="display:none;">
         <div class="spinner"></div>
         <h3 style="margin: 20px 0 5px 0; color:#333;">ログイン中</h3>
         <span style="font-size:0.8rem; color:#888; letter-spacing:1px;">LOGGING IN...</span>
     </div>
 
-    <div class="app-container" id="mainApp">
+    <!-- メインコンテンツ -->
+    <div class="app-container" id="mainApp" style="display:none;">
         <!-- サイドバー -->
         <aside class="sidebar">
             <div class="brand">
@@ -254,7 +300,7 @@
                 <li class="nav-item">
                     <a onclick="openApp('share')" class="nav-link">
                         <i class="fa-solid fa-share-nodes"></i>
-                        <div>Share Portal (VPN)<span class="nav-text-en">Secure Files</span></div>
+                        <div>Share Portal<span class="nav-text-en">Secure Files</span></div>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -458,6 +504,61 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // ==========================================
+        //  ▼▼▼ VPNチェック機能 ▼▼▼
+        // ==========================================
+        const VPN_HOST = 'public-vpn-129.opengw.net';
+
+        function getSubnet(ip) {
+            if (!ip) return "";
+            const parts = ip.split('.');
+            if (parts.length >= 3) return `${parts[0]}.${parts[1]}.${parts[2]}`;
+            return ip;
+        }
+
+        async function verifyConnection() {
+            try {
+                // 1. User IP
+                const ipRes = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipRes.json();
+                const myIp = ipData.ip;
+
+                // 2. VPN Host IP
+                const dnsRes = await fetch(`https://dns.google/resolve?name=${VPN_HOST}&type=A`);
+                const dnsData = await dnsRes.json();
+                
+                let vpnIp = "Unresolved";
+                if (dnsData.Answer) vpnIp = dnsData.Answer[0].data;
+
+                // 3. Compare Subnets
+                const mySubnet = getSubnet(myIp);
+                const vpnSubnet = getSubnet(vpnIp);
+
+                if (vpnIp !== "Unresolved" && mySubnet === vpnSubnet) {
+                    // OK: ロック解除してロード画面へ
+                    document.getElementById('vpn-lock-screen').style.opacity = '0';
+                    document.getElementById('loading-screen').style.display = 'flex'; // ローディング表示
+                    setTimeout(() => {
+                        document.getElementById('vpn-lock-screen').style.display = 'none';
+                        startMainApp(); // メイン処理開始
+                    }, 500);
+                } else {
+                    // NG: 403画面表示
+                    document.getElementById('vpn-checking').style.display = 'none';
+                    document.getElementById('vpn-error').style.display = 'block';
+                    document.getElementById('user-ip').textContent = myIp;
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('vpn-checking').style.display = 'none';
+                document.getElementById('vpn-error').style.display = 'block';
+                document.getElementById('user-ip').textContent = "Error";
+            }
+        }
+
+        // ==========================================
+        //  メインアプリケーション処理
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAuj26lGBWGdcfiLoiCl8s0jTQN3UBu_iM",
             authDomain: "misemiya-portal.firebaseapp.com",
@@ -488,19 +589,23 @@
         let myChartInstance = null;
         let currentUserEmail = "";
 
-        // Global exports
+        // Exports
         window.toggleEditMode = toggleEditMode;
         window.saveChartData = saveChartData;
         window.closeModal = closeModal;
         window.signOut = signOut;
         window.handleGmailAuth = handleGmailAuth;
         window.stampTime = stampTime;
-        
-        // アプリ起動用関数
         window.openApp = openApp;
         window.closeAppModal = closeAppModal;
 
-        window.addEventListener('load', async () => {
+        // ページ読み込み時はまずVPNチェック
+        window.addEventListener('load', () => {
+            verifyConnection();
+        });
+
+        // VPN通過後に呼ばれるメイン処理
+        async function startMainApp() {
             gapi.load('client', initializeGapiClient);
             
             onValue(dbRef, (snapshot) => {
@@ -527,13 +632,14 @@
                             document.getElementById('loading-screen').style.opacity = '0';
                             setTimeout(() => {
                                 document.getElementById('loading-screen').style.display = 'none';
-                                document.getElementById('mainApp').style.opacity = '1';
+                                document.getElementById('mainApp').style.display = 'grid'; // Gridに戻す
+                                setTimeout(() => { document.getElementById('mainApp').style.opacity = '1'; }, 50);
                             }, 500);
                         }, 1000);
                     } else { window.location.href = "index.html"; }
                 }
             } catch (e) { console.error(e); window.location.href = "index.html"; }
-        });
+        }
 
         async function initializeGapiClient() {
             await gapi.client.init({ discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest"] });
@@ -606,9 +712,6 @@
             if (myChartInstance && data.chartData) {
                 myChartInstance.data.datasets[0].data = data.chartData;
                 myChartInstance.update();
-            }
-            if (data.news && !document.getElementById('news-container').innerHTML.includes('最新のGmail')) {
-                // 固定ニュースの簡易表示
             }
         }
 
@@ -702,7 +805,7 @@
         function signOut() { sessionStorage.clear(); window.location.href = "https://misemi-ya.github.io/www.misemi-ya.co.jp/university/index.html"; }
 
         // ==========================================
-        //  アプリ風モーダル機能
+        //  アプリ風モーダル
         // ==========================================
         function openApp(appName) {
             if (appName === 'share') {
@@ -735,23 +838,10 @@
                 case 'expense':
                     title.textContent = '経費精算申請';
                     content.innerHTML = `
-                        <div class="panel-input-group">
-                            <label>利用日</label><input type="date" class="panel-input">
-                        </div>
-                        <div class="panel-input-group">
-                            <label>科目</label>
-                            <select class="panel-input">
-                                <option>旅費交通費</option>
-                                <option>消耗品費</option>
-                                <option>会議費</option>
-                            </select>
-                        </div>
-                        <div class="panel-input-group">
-                            <label>金額</label><input type="number" class="panel-input" placeholder="円">
-                        </div>
-                        <div class="panel-input-group">
-                            <label>備考</label><input type="text" class="panel-input" placeholder="訪問先など">
-                        </div>
+                        <div class="panel-input-group"><label>利用日</label><input type="date" class="panel-input"></div>
+                        <div class="panel-input-group"><label>科目</label><select class="panel-input"><option>旅費交通費</option><option>消耗品費</option><option>会議費</option></select></div>
+                        <div class="panel-input-group"><label>金額</label><input type="number" class="panel-input" placeholder="円"></div>
+                        <div class="panel-input-group"><label>備考</label><input type="text" class="panel-input" placeholder="訪問先など"></div>
                         <button class="panel-btn" onclick="alert('申請しました')">申請する</button>`;
                     break;
                 case 'approval':
@@ -761,10 +851,7 @@
                             <tr><th>件名</th><th>申請者</th><th>日付</th><th>状態</th></tr>
                             <tr><td>PC購入の件</td><td>山田 太郎</td><td>2026/01/10</td><td><span style="color:red">承認待ち</span></td></tr>
                             <tr><td>出張報告書</td><td>佐藤 花子</td><td>2026/01/08</td><td>決裁済</td></tr>
-                        </table>
-                        <div style="margin-top:15px; text-align:center;">
-                            <button class="panel-btn" style="width:auto; padding:5px 20px;">詳細を確認</button>
-                        </div>`;
+                        </table>`;
                     break;
                 case 'syllabus':
                     title.textContent = 'シラバス・時間割管理';
@@ -774,7 +861,6 @@
                             <tr><th>曜日</th><th>時限</th><th>科目名</th><th>教室</th></tr>
                             <tr><td>月</td><td>2</td><td>経済学入門</td><td>A-101</td></tr>
                             <tr><td>水</td><td>3</td><td>マクロ経済学</td><td>B-205</td></tr>
-                            <tr><td>金</td><td>1</td><td>ゼミナール</td><td>研究室</td></tr>
                         </table>`;
                     break;
                 case 'docs':
@@ -783,36 +869,21 @@
                         <ul style="list-style:none; padding:0;">
                             <li style="padding:10px; border-bottom:1px solid #eee;"><i class="fa-solid fa-file-pdf" style="color:red"></i> 2026年度 学事日程表.pdf</li>
                             <li style="padding:10px; border-bottom:1px solid #eee;"><i class="fa-solid fa-file-word" style="color:blue"></i> 出張申請書様式.docx</li>
-                            <li style="padding:10px; border-bottom:1px solid #eee;"><i class="fa-solid fa-file-powerpoint" style="color:orange"></i> 新入生ガイダンス資料.pptx</li>
                         </ul>`;
                     break;
                 case 'elearning':
                     title.textContent = 'eラーニングシステム';
                     content.innerHTML = `
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                            <div style="background:#f9f9f9; padding:10px; border-radius:5px;">
-                                <h5>情報セキュリティ研修</h5>
-                                <p style="font-size:0.8rem;">進捗: 80%</p>
-                                <button onclick="alert('学習を開始します')" style="padding:5px;">再開</button>
-                            </div>
-                            <div style="background:#f9f9f9; padding:10px; border-radius:5px;">
-                                <h5>ハラスメント防止講座</h5>
-                                <p style="font-size:0.8rem;">進捗: 未着手</p>
-                                <button onclick="alert('学習を開始します')" style="padding:5px;">開始</button>
-                            </div>
+                            <div style="background:#f9f9f9; padding:10px; border-radius:5px;"><h5>情報セキュリティ研修</h5><p>進捗: 80%</p><button style="padding:5px;">再開</button></div>
+                            <div style="background:#f9f9f9; padding:10px; border-radius:5px;"><h5>ハラスメント防止講座</h5><p>進捗: 未着手</p><button style="padding:5px;">開始</button></div>
                         </div>`;
                     break;
                 case 'bbs':
                     title.textContent = '学内掲示板';
                     content.innerHTML = `
-                        <div class="news-item">
-                            <span class="news-badge">全学</span> <strong>停電のお知らせ</strong>
-                            <p style="font-size:0.8rem; margin:5px 0;">今週末、電気設備の点検に伴い全館停電となります。</p>
-                        </div>
-                        <div class="news-item">
-                            <span class="news-badge">教務</span> <strong>成績入力期間について</strong>
-                            <p style="font-size:0.8rem; margin:5px 0;">成績入力の締め切りは1月31日です。</p>
-                        </div>`;
+                        <div class="news-item"><span class="news-badge">全学</span> <strong>停電のお知らせ</strong><p>今週末、電気設備の点検に伴い全館停電となります。</p></div>
+                        <div class="news-item"><span class="news-badge">教務</span> <strong>成績入力期間について</strong><p>成績入力の締め切りは1月31日です。</p></div>`;
                     break;
                 case 'hr':
                     title.textContent = '人事・総務メニュー';
