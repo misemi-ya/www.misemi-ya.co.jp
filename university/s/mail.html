@@ -14,17 +14,18 @@
     
     <style>
         :root {
-            --primary-color: #003366;
+            --primary-bg: #f6f8fc;
             --sidebar-width: 260px;
             --header-height: 60px;
-            --bg-color: #f6f8fc;
-            --hover-color: #e8eaed;
+            --accent-color: #003366;
+            --btn-compose: #c2e7ff;
+            --btn-compose-text: #001d35;
         }
 
         body {
             margin: 0; padding: 0;
             font-family: 'Roboto', sans-serif;
-            background-color: var(--bg-color);
+            background-color: var(--primary-bg);
             height: 100vh; overflow: hidden;
             display: flex; flex-direction: column;
         }
@@ -33,45 +34,39 @@
         header {
             height: var(--header-height); background: white;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; border-bottom: 1px solid #e0e0e0; z-index: 100;
+            padding: 0 20px; border-bottom: 1px solid #e0e0e0;
         }
-        .header-left { display: flex; align-items: center; gap: 15px; font-weight: bold; color: #444; }
-        .header-left i { cursor: pointer; color: #5f6368; }
-        .user-email { font-size: 0.9rem; color: #666; background: #eee; padding: 5px 15px; border-radius: 20px; }
+        .logo-area { display: flex; align-items: center; gap: 10px; font-weight: bold; color: #444; }
+        .logo-area img { height: 30px; }
+        .user-area { display: flex; align-items: center; gap: 15px; }
 
-        /* コンテナ */
-        .mail-container { display: flex; flex: 1; overflow: hidden; }
+        /* メインレイアウト */
+        .mail-container {
+            display: flex; flex: 1; overflow: hidden;
+        }
 
         /* サイドバー */
         .sidebar {
-            width: var(--sidebar-width); background: var(--bg-color);
+            width: var(--sidebar-width); background: var(--primary-bg);
             padding: 15px; display: flex; flex-direction: column; gap: 5px;
-            overflow-y: auto;
         }
-        
         .btn-compose {
-            background: #c2e7ff; color: #001d35; padding: 15px 20px;
-            border-radius: 16px; border: none; font-weight: bold; cursor: pointer;
-            display: flex; align-items: center; gap: 15px; transition: 0.2s;
-            margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex; align-items: center; gap: 10px;
+            background-color: var(--btn-compose); color: var(--btn-compose-text);
+            padding: 15px 20px; border-radius: 16px; border: none;
+            font-weight: bold; cursor: pointer; transition: 0.2s;
+            margin-bottom: 20px; width: 150px;
         }
-        .btn-compose:hover { box-shadow: 0 4px 6px rgba(0,0,0,0.15); background: #b3d7ef; }
-
-        /* サイドバーメニュー */
-        .menu-section { margin-bottom: 20px; }
-        .menu-label { font-size: 0.75rem; color: #5f6368; padding-left: 15px; margin-bottom: 5px; font-weight: bold; }
-
+        .btn-compose:hover { box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        
         .folder-item {
-            padding: 8px 20px; border-radius: 0 20px 20px 0; cursor: pointer;
-            display: flex; align-items: center; gap: 15px; color: #202124;
-            font-size: 0.95rem; text-decoration: none;
+            padding: 10px 20px; border-radius: 0 20px 20px 0;
+            cursor: pointer; color: #444; display: flex; align-items: center; gap: 15px;
         }
-        .folder-item i { width: 20px; text-align: center; color: #5f6368; }
-        .folder-item:hover { background: #e0e0e0; }
         .folder-item.active { background: #d3e3fd; color: #001d35; font-weight: bold; }
-        .folder-item.active i { color: #001d35; }
+        .folder-item:hover:not(.active) { background: #e0e0e0; }
 
-        /* メインコンテンツ（メールリスト） */
+        /* メールリストエリア */
         .content-area {
             flex: 1; background: white; margin: 10px 10px 10px 0;
             border-radius: 16px; display: flex; flex-direction: column;
@@ -79,231 +74,210 @@
             position: relative;
         }
 
+        /* リスト表示 */
         .mail-list { overflow-y: auto; flex: 1; }
-        
         .mail-item {
-            display: grid; grid-template-columns: 220px 1fr 120px;
+            display: grid; grid-template-columns: 200px 1fr 100px;
             padding: 12px 20px; border-bottom: 1px solid #f0f0f0;
-            cursor: pointer; align-items: center; transition: background 0.1s;
+            cursor: pointer; align-items: center;
         }
-        .mail-item:hover { box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60,64,67,.3); z-index: 1; }
-        .mail-item.unread { background: #f2f6fc; font-weight: bold; color: #202124; }
-        .mail-item.unread .sender, .mail-item.unread .subject { font-weight: 800; }
-        
-        .sender { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .subject { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #5f6368; padding-right: 15px; }
-        .date { font-size: 0.8rem; text-align: right; color: #5f6368; }
+        .mail-item:hover { box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0, 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15); z-index: 1; }
+        .mail-item.unread { background-color: #f2f6fc; font-weight: bold; }
+        .mail-sender { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mail-subject { color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 20px; }
+        .mail-date { font-size: 0.8rem; color: #666; text-align: right; }
 
-        /* 「さらに読み込む」ボタン */
-        .load-more-btn {
-            width: 100%; padding: 15px; background: none; border: none;
-            color: #0b57d0; cursor: pointer; font-weight: bold; border-top: 1px solid #f0f0f0;
-        }
-        .load-more-btn:hover { background: #f8f9fa; }
-
-        /* 詳細画面（オーバーレイ） */
+        /* 詳細表示 (閲覧画面) */
         .mail-detail {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; z-index: 20; display: none; flex-direction: column;
+            background: white; z-index: 10; display: none; flex-direction: column;
         }
         .detail-toolbar {
-            padding: 10px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;
+            padding: 10px 20px; border-bottom: 1px solid #eee; display: flex; gap: 20px;
         }
-        .icon-btn { border: none; background: none; cursor: pointer; font-size: 1.1rem; padding: 10px; border-radius: 50%; color: #444; }
-        .icon-btn:hover { background: #eee; }
+        .detail-content { padding: 30px; overflow-y: auto; flex: 1; line-height: 1.6; }
+        .detail-subject { font-size: 1.5rem; margin-bottom: 20px; }
+        .detail-meta { color: #666; font-size: 0.9rem; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
 
-        .detail-content { padding: 40px; overflow-y: auto; flex: 1; }
-        .detail-header { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
-        .detail-subject { font-size: 1.4rem; margin-bottom: 15px; }
-        .detail-info { display: flex; justify-content: space-between; color: #666; font-size: 0.9rem; }
-        .detail-body { line-height: 1.6; font-size: 1rem; color: #222; }
+        /* ログインオーバーレイ */
+        #auth-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.9); z-index: 9999;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+        }
+        .google-btn {
+            background: #fff; border: 1px solid #dadce0; color: #3c4043;
+            padding: 10px 20px; border-radius: 4px; cursor: pointer;
+            font-weight: 500; display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .google-btn:hover { background: #f8f9fa; border-color: #d2e3fc; }
 
         /* 作成モーダル */
         .compose-modal {
             position: fixed; bottom: 0; right: 80px; width: 500px; height: 600px;
-            background: white; box-shadow: 0 0 24px rgba(0,0,0,0.15);
-            border-radius: 12px 12px 0 0; z-index: 200;
-            display: none; flex-direction: column; overflow: hidden;
+            background: white; box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            border-radius: 10px 10px 0 0; z-index: 100;
+            display: none; flex-direction: column;
         }
         .compose-header {
-            background: #f2f2f2; padding: 12px 15px;
-            display: flex; justify-content: space-between; align-items: center;
-            font-weight: bold; color: #444;
+            background: #f2f2f2; padding: 10px 15px; border-radius: 10px 10px 0 0;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
         }
-        .compose-body { flex: 1; display: flex; flex-direction: column; }
-        .compose-input { border: none; border-bottom: 1px solid #eee; padding: 12px; outline: none; font-size: 0.95rem; }
-        .compose-textarea { flex: 1; border: none; padding: 15px; outline: none; resize: none; font-family: inherit; font-size: 1rem; }
-        .compose-footer { padding: 15px; display: flex; justify-content: flex-start; align-items: center; }
-        
+        .compose-body { flex: 1; display: flex; flex-direction: column; padding: 10px; }
+        .compose-input {
+            border: none; border-bottom: 1px solid #eee; padding: 10px; outline: none; font-family: inherit;
+        }
+        .compose-textarea {
+            flex: 1; border: none; padding: 10px; outline: none; resize: none; font-family: inherit;
+        }
+        .compose-footer { padding: 10px; display: flex; justify-content: space-between; align-items: center; }
         .btn-send {
-            background: #0b57d0; color: white; border: none; padding: 10px 24px;
+            background: #0b57d0; color: white; border: none; padding: 10px 25px;
             border-radius: 20px; cursor: pointer; font-weight: bold;
         }
-        .btn-send:hover { background: #0946a8; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .btn-send:hover { background: #0946a8; }
+        .btn-close { border: none; background: none; cursor: pointer; font-size: 1.2rem; }
 
-        /* 認証オーバーレイ */
-        #auth-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95); z-index: 9999;
-            display: flex; justify-content: center; align-items: center; flex-direction: column;
-        }
-        .google-signin-btn {
-            background: #fff; border: 1px solid #dadce0; color: #3c4043;
-            padding: 12px 24px; border-radius: 24px; cursor: pointer;
-            font-weight: 500; font-size: 1rem; display: flex; align-items: center; gap: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .google-signin-btn:hover { background: #f8f9fa; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        /* ボタン類 */
+        .icon-btn { border: none; background: transparent; cursor: pointer; font-size: 1.2rem; color: #555; padding: 5px; border-radius: 50%; }
+        .icon-btn:hover { background: #eee; }
+
     </style>
 </head>
 <body>
 
     <!-- 認証オーバーレイ -->
     <div id="auth-overlay">
-        <h2 style="color:#444; margin-bottom:10px;">Webメールへようこそ</h2>
-        <p style="color:#666; margin-bottom:30px;">Googleアカウントと連携してメールを管理します。</p>
-        <button class="google-signin-btn" onclick="handleAuth()">
-            <i class="fa-brands fa-google" style="color:#DB4437; font-size:1.2rem;"></i>
+        <h2>Webメールへようこそ</h2>
+        <p>Gmailアカウントと連携して、メールの送受信を行います。</p>
+        <button class="google-btn" onclick="handleAuth()">
+            <i class="fa-brands fa-google" style="color:#DB4437;"></i>
             Googleアカウントでログイン
         </button>
     </div>
 
-    <!-- ヘッダー -->
     <header>
-        <div class="header-left">
+        <div class="logo-area">
             <a href="l.html" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:10px;">
                 <i class="fa-solid fa-arrow-left"></i>
-                <img src="../校章.png" alt="logo" onerror="this.style.display='none'" style="height:30px;">
+                <img src="../校章.png" alt="logo" onerror="this.style.display='none'">
                 <span>Misemi-ya Web Mail</span>
             </a>
         </div>
-        <div class="user-email" id="user-email">Guest</div>
+        <div class="user-area">
+            <span id="user-email">Guest</span>
+        </div>
     </header>
 
     <div class="mail-container">
         <!-- サイドバー -->
         <aside class="sidebar">
             <button class="btn-compose" onclick="openCompose()">
-                <i class="fa-solid fa-pencil" style="font-size:1.2rem;"></i> 作成
+                <i class="fa-solid fa-pencil"></i> 作成
             </button>
-
-            <div class="menu-section">
-                <div class="menu-label">MAIL BOXES</div>
-                <div class="folder-item active" onclick="resetLoad('INBOX')">
-                    <i class="fa-solid fa-inbox"></i> 受信トレイ
-                </div>
-                <div class="folder-item" onclick="resetLoad('SENT')">
-                    <i class="fa-regular fa-paper-plane"></i> 送信済み
-                </div>
-                <div class="folder-item" onclick="resetLoad('TRASH')">
-                    <i class="fa-regular fa-trash-can"></i> ゴミ箱
-                </div>
+            
+            <div class="folder-item active" onclick="loadMessages('INBOX')">
+                <i class="fa-solid fa-inbox"></i> 受信トレイ
             </div>
-
-            <div class="menu-section">
-                <div class="menu-label">UNIVERSITY APPS</div>
-                <a href="l.html" class="folder-item">
-                    <i class="fa-solid fa-chart-pie"></i> ダッシュボード
-                </a>
-                <a href="reserve.html" class="folder-item">
-                    <i class="fa-solid fa-calendar-check"></i> 施設予約
-                </a>
-                <a href="students.html" class="folder-item">
-                    <i class="fa-solid fa-user-graduate"></i> 学生検索
-                </a>
+            <div class="folder-item" onclick="loadMessages('SENT')">
+                <i class="fa-regular fa-paper-plane"></i> 送信済み
+            </div>
+            <div class="folder-item" onclick="loadMessages('TRASH')">
+                <i class="fa-regular fa-trash-can"></i> ゴミ箱
             </div>
         </aside>
 
         <!-- メインコンテンツ -->
         <main class="content-area">
             <!-- メール一覧 -->
-            <div id="mail-list" class="mail-list"></div>
-            
-            <!-- 読み込みボタン -->
-            <button id="loadMoreBtn" class="load-more-btn" style="display:none;" onclick="loadMore()">
-                さらに読み込む
-            </button>
-            
-            <!-- 詳細ビュー -->
+            <div id="mail-list" class="mail-list">
+                <div style="padding:20px; text-align:center; color:#999;">
+                    <i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...
+                </div>
+            </div>
+
+            <!-- 詳細画面 -->
             <div id="mail-detail" class="mail-detail">
                 <div class="detail-toolbar">
-                    <button class="icon-btn" onclick="closeDetail()" title="戻る"><i class="fa-solid fa-arrow-left"></i></button>
-                    <button class="icon-btn" onclick="deleteCurrent()" title="削除"><i class="fa-regular fa-trash-can"></i></button>
+                    <button class="icon-btn" onclick="closeDetail()"><i class="fa-solid fa-arrow-left"></i></button>
+                    <button class="icon-btn" onclick="deleteCurrentMail()"><i class="fa-regular fa-trash-can"></i></button>
                 </div>
-                <div id="detail-body" class="detail-content"></div>
+                <div class="detail-content" id="detail-body">
+                    <!-- JSで挿入 -->
+                </div>
             </div>
         </main>
     </div>
 
-    <!-- 新規作成モーダル -->
+    <!-- 送信モーダル -->
     <div id="compose-modal" class="compose-modal">
         <div class="compose-header">
             <span>新規メッセージ</span>
-            <button onclick="closeCompose()" style="border:none; background:none; cursor:pointer; font-size:1.2rem;">×</button>
+            <button class="btn-close" onclick="closeCompose()">×</button>
         </div>
         <div class="compose-body">
-            <input id="to" class="compose-input" placeholder="To">
-            <input id="sub" class="compose-input" placeholder="件名">
-            <textarea id="msg" class="compose-textarea" placeholder="本文を入力..."></textarea>
+            <input type="email" id="compose-to" class="compose-input" placeholder="To">
+            <input type="text" id="compose-subject" class="compose-input" placeholder="件名">
+            <textarea id="compose-msg" class="compose-textarea" placeholder="本文を入力..."></textarea>
         </div>
         <div class="compose-footer">
-            <button onclick="sendMail()" class="btn-send">送信</button>
+            <button class="btn-send" onclick="sendMail()">送信</button>
+            <button class="icon-btn"><i class="fa-solid fa-paperclip"></i></button>
         </div>
     </div>
 
     <script>
-        // ▼▼▼ Google Client ID ▼▼▼
+        // ▼▼▼ s/l.html と同じGoogleクライアントIDを入れてください ▼▼▼
         const CLIENT_ID = '385803166778-kg041ijpug65vf8ir68tubl8v804ncef.apps.googleusercontent.com';
         
-        // 必要なスコープ (Gmailの読み書き・送信)
+        // 権限：メールの読み取り、変更、送信
         const SCOPES = 'https://www.googleapis.com/auth/gmail.modify';
 
         let tokenClient;
-        let nextPageToken = null;
-        let currentLabel = 'INBOX';
-        let currentMsgId = null;
+        let gapiInited = false;
+        let gisInited = false;
 
-        // 初期化処理
-        window.onload = () => {
-            gapi.load('client', async () => {
-                await gapi.client.init({
-                    discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest"]
-                });
-                
-                tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: CLIENT_ID,
-                    scope: SCOPES,
-                    callback: (resp) => {
-                        if (resp.error) {
-                            console.error(resp);
-                            return;
-                        }
-                        // 認証成功時
-                        document.getElementById('auth-overlay').style.display = 'none';
-                        resetLoad('INBOX');
-                        loadProfile();
-                    }
-                });
-
-                // 既にログイン済みかチェックして自動ログイン試行
-                const token = gapi.client.getToken();
-                if (!token) {
-                    // サイレントログインを試みる（以前許可していればポップアップなし）
-                    tokenClient.requestAccessToken({prompt: ''});
-                } else {
+        // 初期化
+        window.onload = function() {
+            gapi.load('client', initializeGapiClient);
+            google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: (resp) => {
+                    if (resp.error !== undefined) throw (resp);
                     document.getElementById('auth-overlay').style.display = 'none';
-                    resetLoad('INBOX');
+                    loadMessages();
                     loadProfile();
-                }
+                },
             });
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: '', // 定義時に指定
+            });
+            gisInited = true;
         };
 
-        // ログインボタン押下
+        async function initializeGapiClient() {
+            await gapi.client.init({
+                discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest"],
+            });
+            gapiInited = true;
+        }
+
+        // ログインボタン
         function handleAuth() {
+            tokenClient.callback = async (resp) => {
+                if (resp.error !== undefined) throw (resp);
+                document.getElementById('auth-overlay').style.display = 'none';
+                loadMessages();
+                loadProfile();
+            };
             tokenClient.requestAccessToken({prompt: 'consent'});
         }
 
-        // プロフィール取得 (メールアドレス表示用)
+        // プロフィール取得
         async function loadProfile() {
             try {
                 const res = await gapi.client.gmail.users.getProfile({userId: 'me'});
@@ -311,125 +285,103 @@
             } catch(e) { console.error(e); }
         }
 
-        // ラベル切り替え・リセット
-        function resetLoad(label) {
-            currentLabel = label;
-            nextPageToken = null;
-            document.getElementById('mail-list').innerHTML = '';
-            document.getElementById('loadMoreBtn').style.display = 'none';
+        // メール一覧取得
+        async function loadMessages(labelId = 'INBOX') {
+            const listContainer = document.getElementById('mail-list');
+            listContainer.innerHTML = '<div style="padding:20px; text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> 取得中...</div>';
             
-            // アクティブクラスの切り替え
-            document.querySelectorAll('.folder-item').forEach(e => e.classList.remove('active'));
-            if(event && event.currentTarget) event.currentTarget.classList.add('active');
-            
-            loadMessages();
-        }
+            // フォルダのアクティブ表示切り替え
+            document.querySelectorAll('.folder-item').forEach(el => el.classList.remove('active'));
+            event?.currentTarget?.classList.add('active');
 
-        // メッセージ一覧取得
-        async function loadMessages() {
-            const btn = document.getElementById('loadMoreBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 読み込み中...';
-            
             try {
-                const res = await gapi.client.gmail.users.messages.list({
-                    userId: 'me',
-                    labelIds: [currentLabel],
-                    maxResults: 20,
-                    pageToken: nextPageToken
+                const response = await gapi.client.gmail.users.messages.list({
+                    'userId': 'me',
+                    'labelIds': [labelId],
+                    'maxResults': 20
                 });
-
-                nextPageToken = res.result.nextPageToken;
                 
-                if (res.result.messages) {
-                    for (const m of res.result.messages) {
-                        // 個別に詳細取得 (Promiseで並列処理も可能だが順番維持のため直列推奨)
-                        const detail = await gapi.client.gmail.users.messages.get({userId: 'me', id: m.id});
-                        renderItem(detail.result);
+                const messages = response.result.messages;
+                listContainer.innerHTML = '';
+
+                if (messages && messages.length > 0) {
+                    for (const msg of messages) {
+                        const req = gapi.client.gmail.users.messages.get({
+                            'userId': 'me', 'id': msg.id
+                        });
+                        // 非同期で詳細を取得して表示
+                        req.then(res => {
+                            renderMailItem(res.result);
+                        });
                     }
                 } else {
-                    if(!nextPageToken && document.getElementById('mail-list').children.length === 0) {
-                        document.getElementById('mail-list').innerHTML = '<div style="padding:40px; text-align:center; color:#888;">メールはありません</div>';
-                    }
+                    listContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">メールはありません</div>';
                 }
-
-                if (nextPageToken) {
-                    btn.style.display = 'block';
-                    btn.innerHTML = 'さらに読み込む';
-                } else {
-                    btn.style.display = 'none';
-                }
-
-            } catch(e) {
-                console.error(e);
-                btn.innerHTML = 'エラーが発生しました';
+            } catch (err) {
+                console.error(err);
+                listContainer.innerHTML = '<div style="padding:20px; text-align:center; color:red;">エラーが発生しました</div>';
             }
         }
 
-        function loadMore() {
-            loadMessages();
-        }
+        // メール1件を描画
+        function renderMailItem(message) {
+            const headers = message.payload.headers;
+            const subject = headers.find(h => h.name === 'Subject')?.value || '(件名なし)';
+            const from = headers.find(h => h.name === 'From')?.value || 'Unknown';
+            // 表示名をきれいにする
+            const fromName = from.replace(/<.*>/, '').trim() || from;
+            const date = new Date(Number(message.internalDate)).toLocaleDateString();
+            const isUnread = message.labelIds.includes('UNREAD');
 
-        // リストアイテムの描画
-        function renderItem(m) {
-            const h = m.payload.headers;
-            const sub = h.find(x => x.name==='Subject')?.value || '(件名なし)';
-            const fromRaw = h.find(x => x.name==='From')?.value || '';
-            const from = fromRaw.replace(/<.*>/,'').trim() || fromRaw; // 名前だけ抽出
-            const date = new Date(Number(m.internalDate)).toLocaleString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-            
-            const isUnread = m.labelIds.includes('UNREAD');
-
-            const div = document.createElement('div');
-            div.className = `mail-item ${isUnread ? 'unread' : ''}`;
-            div.innerHTML = `
-                <div class="sender">${from}</div>
-                <div class="subject">${sub} <span style="font-weight:normal; color:#999; margin-left:10px;">- ${m.snippet}</span></div>
-                <div class="date">${date}</div>
+            const item = document.createElement('div');
+            item.className = `mail-item ${isUnread ? 'unread' : ''}`;
+            item.innerHTML = `
+                <div class="mail-sender">${fromName}</div>
+                <div class="mail-subject">${subject} - <span style="color:#999; font-weight:normal;">${message.snippet}</span></div>
+                <div class="mail-date">${date}</div>
             `;
-            div.onclick = () => openDetail(m);
-            document.getElementById('mail-list').appendChild(div);
+            item.onclick = () => openDetail(message);
+            
+            document.getElementById('mail-list').appendChild(item);
         }
 
-        // 詳細画面を開く
-        function openDetail(m) {
-            currentMsgId = m.id;
-            const h = m.payload.headers;
-            const sub = h.find(x => x.name==='Subject')?.value || '(件名なし)';
-            const from = h.find(x => x.name==='From')?.value || '';
-            const date = new Date(Number(m.internalDate)).toLocaleString('ja-JP');
-
+        // メール詳細を開く
+        let currentMessageId = null;
+        function openDetail(message) {
+            currentMessageId = message.id;
+            const detailView = document.getElementById('mail-detail');
+            const headers = message.payload.headers;
+            const subject = headers.find(h => h.name === 'Subject')?.value;
+            const from = headers.find(h => h.name === 'From')?.value;
+            const date = new Date(Number(message.internalDate)).toLocaleString();
+            
+            // 本文のデコード
             let body = '';
-            // 本文のデコード処理 (HTML優先)
-            if(m.payload.parts) {
-                const htmlPart = m.payload.parts.find(x => x.mimeType==='text/html');
-                const textPart = m.payload.parts.find(x => x.mimeType==='text/plain');
-                const p = htmlPart || textPart || m.payload.parts[0];
-                if(p.body.data) body = decodeBase64(p.body.data);
-            } else if (m.payload.body.data) {
-                body = decodeBase64(m.payload.body.data);
+            if(message.payload.parts) {
+                // マルチパートの場合、HTMLパートを探す
+                const part = message.payload.parts.find(p => p.mimeType === 'text/html') || message.payload.parts[0];
+                body = decodeBase64(part.body.data);
+            } else {
+                body = decodeBase64(message.payload.body.data);
             }
-            
-            const detailHtml = `
-                <div class="detail-header">
-                    <div class="detail-subject">${sub}</div>
-                    <div class="detail-info">
-                        <div><strong>From:</strong> ${from}</div>
-                        <div>${date}</div>
-                    </div>
-                </div>
-                <div class="detail-body">${body}</div>
-            `;
 
-            document.getElementById('detail-body').innerHTML = detailHtml;
-            document.getElementById('mail-detail').style.display = 'flex';
+            document.getElementById('detail-body').innerHTML = `
+                <div class="detail-subject">${subject}</div>
+                <div class="detail-meta">
+                    <strong>From:</strong> ${from}<br>
+                    <strong>Date:</strong> ${date}
+                </div>
+                <div>${body}</div>
+            `;
+            
+            detailView.style.display = 'flex';
 
             // 既読にする
-            if(m.labelIds.includes('UNREAD')) {
+            if(message.labelIds.includes('UNREAD')) {
                 gapi.client.gmail.users.messages.modify({
-                    userId: 'me', id: m.id, removeLabelIds: ['UNREAD']
-                }).then(() => {
-                    // リスト側の未読スタイルを解除したい場合はリロードするかDOM操作が必要
-                    // 今回は簡易的にそのまま
+                    'userId': 'me',
+                    'id': message.id,
+                    'removeLabelIds': ['UNREAD']
                 });
             }
         }
@@ -438,63 +390,68 @@
             document.getElementById('mail-detail').style.display = 'none';
         }
 
-        // メール送信
+        // 送信モーダル
+        function openCompose() {
+            document.getElementById('compose-modal').style.display = 'flex';
+        }
+        function closeCompose() {
+            document.getElementById('compose-modal').style.display = 'none';
+        }
+
+        // メール送信処理
         async function sendMail() {
-            const to = document.getElementById('to').value;
-            const sub = document.getElementById('sub').value;
-            const msg = document.getElementById('msg').value;
+            const to = document.getElementById('compose-to').value;
+            const subject = document.getElementById('compose-subject').value;
+            const body = document.getElementById('compose-msg').value;
 
-            if(!to) { alert('宛先を入力してください'); return; }
-
+            // MIME形式のメールを作成
             const email = 
-                `To: ${to}\r\n` +
-                `Subject: ${sub}\r\n` +
-                `Content-Type: text/plain; charset=utf-8\r\n\r\n` +
-                `${msg}`;
+                "To: " + to + "\r\n" +
+                "Subject: " + subject + "\r\n" +
+                "Content-Type: text/plain; charset=utf-8\r\n\r\n" +
+                body;
 
-            const raw = btoa(unescape(encodeURIComponent(email))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+            const base64EncodedEmail = btoa(unescape(encodeURIComponent(email)))
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
             try {
                 await gapi.client.gmail.users.messages.send({
-                    userId: 'me',
-                    resource: { raw: raw }
+                    'userId': 'me',
+                    'resource': {
+                        'raw': base64EncodedEmail
+                    }
                 });
-                alert('送信しました');
+                alert('送信しました！');
                 closeCompose();
-                // フォームクリア
-                document.getElementById('to').value = '';
-                document.getElementById('sub').value = '';
-                document.getElementById('msg').value = '';
-                // 送信済みフォルダにいるならリロード
-                if(currentLabel === 'SENT') resetLoad('SENT');
-            } catch(e) {
+                document.getElementById('compose-to').value = '';
+                document.getElementById('compose-subject').value = '';
+                document.getElementById('compose-msg').value = '';
+            } catch (e) {
                 console.error(e);
-                alert('送信に失敗しました');
+                alert('送信に失敗しました。');
             }
         }
 
-        // 削除（ゴミ箱へ）
-        async function deleteCurrent() {
-            if(!confirm('このメールをゴミ箱に移動しますか？')) return;
+        // ゴミ箱へ移動
+        async function deleteCurrentMail() {
+            if(!confirm('ゴミ箱に移動しますか？')) return;
             try {
-                await gapi.client.gmail.users.messages.trash({userId:'me', id:currentMsgId});
+                await gapi.client.gmail.users.messages.trash({
+                    'userId': 'me', 'id': currentMessageId
+                });
                 closeDetail();
-                // リストを再読み込みして削除を反映
-                resetLoad(currentLabel);
+                loadMessages(); // リスト更新
             } catch(e) {
-                console.error(e);
                 alert('削除できませんでした');
             }
         }
-        
-        // モーダル制御
-        function openCompose(){ document.getElementById('compose-modal').style.display='flex'; }
-        function closeCompose(){ document.getElementById('compose-modal').style.display='none'; }
 
-        // Base64URLデコード
-        function decodeBase64(d){
-            return decodeURIComponent(escape(window.atob(d.replace(/-/g,'+').replace(/_/g,'/'))));
+        // Base64URLデコード用ヘルパー
+        function decodeBase64(data) {
+            if(!data) return "";
+            return decodeURIComponent(escape(window.atob(data.replace(/-/g, '+').replace(/_/g, '/'))));
         }
+
     </script>
 </body>
 </html>
