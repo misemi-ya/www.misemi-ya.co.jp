@@ -86,7 +86,7 @@
             display: flex; align-items: center; gap: 15px;
             padding: 10px 15px; text-decoration: none; color: rgba(255,255,255,0.8);
             border-radius: 8px; transition: all 0.2s ease;
-            font-size: 0.9rem;
+            font-size: 0.9rem; cursor: pointer;
         }
         .nav-link:hover, .nav-link.active {
             background: rgba(255,255,255,0.15); color: #fff;
@@ -166,7 +166,7 @@
             background: white; padding: 1.2rem; border-radius: 12px;
             display: flex; flex-direction: column; align-items: center; text-align: center;
             text-decoration: none; color: #333; transition: transform 0.2s, box-shadow 0.2s;
-            border: 1px solid #eee;
+            border: 1px solid #eee; cursor: pointer;
         }
         .service-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.08); border-color: var(--accent-color); }
         .service-icon { font-size: 2rem; margin-bottom: 10px; color: var(--primary-color); }
@@ -201,10 +201,17 @@
         .edit-mode .editable-text { border: 2px dashed #ff5500; background: rgba(255, 85, 0, 0.05); cursor: text; padding: 2px 5px; border-radius: 4px; }
         .edit-mode .chart-container { cursor: pointer; border: 2px dashed #ff5500; }
         
+        /* 汎用モーダル (グラフ編集・アプリ表示用) */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .edit-panel { background: white; width: 400px; padding: 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .edit-panel { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .panel-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         .panel-btn { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        
+        /* アプリモーダル内のスタイル */
+        .app-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .app-table th, .app-table td { border-bottom: 1px solid #eee; padding: 10px; text-align: left; }
+        .app-table th { background: #f8f9fa; color: #555; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -245,15 +252,21 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="share.html" class="nav-link">
+                    <a onclick="openApp('share')" class="nav-link">
                         <i class="fa-solid fa-share-nodes"></i>
                         <div>Share Portal (VPN)<span class="nav-text-en">Secure Files</span></div>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a onclick="openApp('groupware')" class="nav-link">
+                        <i class="fa-solid fa-sitemap"></i>
+                        <div>グループウェア<span class="nav-text-en">Groupware</span></div>
                     </a>
                 </li>
 
                 <div class="nav-category">Management</div>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a onclick="openApp('hr')" class="nav-link">
                         <i class="fa-solid fa-user-tie"></i>
                         <div>人事・総務<span class="nav-text-en">HR & Admin</span></div>
                     </a>
@@ -265,7 +278,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a onclick="openApp('approval')" class="nav-link">
                         <i class="fa-solid fa-file-signature"></i>
                         <div>電子決裁・申請<span class="nav-text-en">Workflow</span></div>
                     </a>
@@ -353,17 +366,17 @@
                 <div class="services-section">
                     <div class="section-title">業務システム・リンク</div>
                     <div class="services-grid">
-                        <a href="#" class="service-card">
+                        <a onclick="openApp('payroll')" class="service-card">
                             <i class="fa-solid fa-file-invoice-dollar service-icon"></i>
                             <div class="service-name">給与・明細</div>
                             <div class="service-desc">明細確認・源泉徴収</div>
                         </a>
-                        <a href="#" class="service-card">
+                        <a onclick="openApp('expense')" class="service-card">
                             <i class="fa-solid fa-receipt service-icon"></i>
                             <div class="service-name">経費精算</div>
                             <div class="service-desc">旅費・立替経費申請</div>
                         </a>
-                        <a href="#" class="service-card">
+                        <a onclick="openApp('syllabus')" class="service-card">
                             <i class="fa-solid fa-book-open service-icon"></i>
                             <div class="service-name">シラバス・時間割</div>
                             <div class="service-desc">授業情報管理</div>
@@ -373,22 +386,22 @@
                             <div class="service-name">学籍管理</div>
                             <div class="service-desc">休退学・成績処理</div>
                         </a>
-                        <a href="#" class="service-card">
+                        <a onclick="openApp('approval')" class="service-card">
                             <i class="fa-solid fa-stamp service-icon"></i>
                             <div class="service-name">電子決裁</div>
                             <div class="service-desc">稟議・購入申請</div>
                         </a>
-                        <a href="#" class="service-card">
+                        <a onclick="openApp('docs')" class="service-card">
                             <i class="fa-solid fa-folder-open service-icon"></i>
                             <div class="service-name">文書ライブラリ</div>
                             <div class="service-desc">規程集・様式DL</div>
                         </a>
-                        <a href="#" class="service-card">
+                        <a onclick="openApp('elearning')" class="service-card">
                             <i class="fa-solid fa-chalkboard-user service-icon"></i>
                             <div class="service-name">eラーニング</div>
                             <div class="service-desc">研修・FD/SD</div>
                         </a>
-                        <a href="#" class="service-card">
+                        <a onclick="openApp('bbs')" class="service-card">
                             <i class="fa-solid fa-comments service-icon"></i>
                             <div class="service-name">学内掲示板</div>
                             <div class="service-desc">全学周知・連絡</div>
@@ -418,13 +431,24 @@
         <button class="admin-fab" onclick="toggleEditMode()"><i class="fa-solid fa-pen"></i></button>
     </div>
     
-    <!-- グラフ編集モーダル -->
+    <!-- グラフ編集モーダル (兼・汎用アプリモーダル) -->
     <div class="modal-overlay" id="chartModal">
-        <div class="edit-panel">
+        <div class="edit-panel" style="width: 400px;">
             <h3>グラフデータを編集</h3>
             <div id="chartInputs"></div>
-            <button class="panel-btn" onclick="saveChartData()">クラウドに保存 (SAVE)</button>
+            <button class="panel-btn" onclick="saveChartData()">保存</button>
             <button class="panel-btn" style="background:#999;" onclick="closeModal()">キャンセル</button>
+        </div>
+    </div>
+
+    <!-- 汎用アプリ用モーダル -->
+    <div class="modal-overlay" id="appModal">
+        <div class="edit-panel" style="width: 700px; max-width: 90%;">
+            <h3 id="appTitle" style="border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; color: var(--primary-color);">App Name</h3>
+            <div id="appContent" style="margin: 20px 0; max-height: 500px; overflow-y: auto;">
+                <!-- アプリの内容がここに挿入されます -->
+            </div>
+            <button class="panel-btn" style="background:#666; margin-top: 20px;" onclick="closeAppModal()">閉じる</button>
         </div>
     </div>
 
@@ -455,7 +479,6 @@
         let gapiInited = false, gisInited = false;
         let isEditMode = false;
         
-        // デフォルトデータ（DBが空の場合）
         let portalData = { 
             stats: { s2:0, s3:0, s4:0 }, 
             chartTitle: "学内システム アクセス状況",
@@ -472,18 +495,20 @@
         window.signOut = signOut;
         window.handleGmailAuth = handleGmailAuth;
         window.stampTime = stampTime;
+        
+        // アプリ起動用関数
+        window.openApp = openApp;
+        window.closeAppModal = closeAppModal;
 
         window.addEventListener('load', async () => {
             gapi.load('client', initializeGapiClient);
             
-            // Firebaseの監視（誰かが更新したら即座にUIへ反映）
             onValue(dbRef, (snapshot) => {
                 const data = snapshot.val();
                 if(data) {
                     portalData = data;
                     updateUI(portalData);
                 } else {
-                    // データがない場合は初期値を保存
                     saveToCloud();
                 }
             });
@@ -569,65 +594,43 @@
                  <span class="en-sub" style="font-size:0.5em; margin-top:5px;">MISEMI-YA UNIVERSITY STAFF PORTAL</span>`;
         }
 
-        // FirebaseのデータをUIに反映
         function updateUI(data) {
-            // statsの反映
             if (data.stats) {
                 document.getElementById('stat2-val').textContent = data.stats.s2 || 0;
                 document.getElementById('stat3-val').textContent = data.stats.s3 || 0;
                 document.getElementById('stat4-val').textContent = data.stats.s4 || 0;
             }
-            // タイトルの反映
             if (data.chartTitle) {
                 document.getElementById('chart-title').textContent = data.chartTitle;
             }
-            // グラフの反映
             if (myChartInstance && data.chartData) {
                 myChartInstance.data.datasets[0].data = data.chartData;
                 myChartInstance.update();
             }
-            // ニュース（Gmail以外の固定部分）
             if (data.news && !document.getElementById('news-container').innerHTML.includes('最新のGmail')) {
-                // Gmailが表示されていない場合のみ固定ニュースを表示（Gmailがあるときは追記する形にするため）
-                // 簡易実装として、ここはGmail連携の有無にかかわらずベースを表示
-                // document.getElementById('news-container').innerHTML = ... 
+                // 固定ニュースの簡易表示
             }
         }
 
-        // ★★★ データをクラウドに保存する最重要関数 ★★★
         function saveToCloud() {
             if(!portalData.stats) portalData.stats = {};
-            
-            // 画面の数値を読み取ってオブジェクトにセット
             portalData.stats.s2 = document.getElementById('stat2-val').textContent;
             portalData.stats.s3 = document.getElementById('stat3-val').textContent;
             portalData.stats.s4 = document.getElementById('stat4-val').textContent;
             portalData.chartTitle = document.getElementById('chart-title').textContent;
-            
-            // chartDataはグラフ編集時に既にセットされているはず
-            
-            // Firebaseへ送信！
-            set(dbRef, portalData).catch(e => {
-                console.error("Save Error:", e);
-                alert("保存に失敗しました。権限を確認してください。");
-            });
+            set(dbRef, portalData).catch(e => console.error(e));
         }
 
-        // 編集モード切替
         function toggleEditMode() {
             isEditMode = !isEditMode;
             const fab = document.querySelector('.admin-fab');
             if (isEditMode) {
                 fab.innerHTML = '<i class="fa-solid fa-check"></i>';
                 document.body.classList.add('edit-mode');
-                
-                // テキスト編集可能にする＆フォーカス外れたら保存
                 document.querySelectorAll('.editable-text').forEach(el => { 
                     el.contentEditable = "true"; 
-                    el.onblur = saveToCloud; // ★ここが重要：入力終わったら即保存
+                    el.onblur = saveToCloud;
                 });
-                
-                // グラフクリックで編集
                 document.querySelector('.chart-container').onclick = () => { 
                     document.getElementById('chartModal').style.display='flex'; 
                     setupChartInputs(); 
@@ -635,39 +638,28 @@
             } else {
                 fab.innerHTML = '<i class="fa-solid fa-pen"></i>';
                 document.body.classList.remove('edit-mode');
-                
-                // 編集不可に戻す
                 document.querySelectorAll('.editable-text').forEach(el => { 
                     el.contentEditable = "false"; 
                     el.onblur = null; 
                 });
                 document.querySelector('.chart-container').onclick = null;
-                
-                // 念のため保存
                 saveToCloud();
             }
         }
 
-        // グラフ編集パネルの入力生成
         function setupChartInputs() {
             const div = document.getElementById('chartInputs'); div.innerHTML = '';
-            // データが無い場合のガード
             const currentData = portalData.chartData || [0,0,0,0,0,0,0];
             const labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-            
             currentData.forEach((v,i) => {
                 div.innerHTML += `<div style="margin-bottom:10px;"><label>${labels[i] || 'Day '+(i+1)}</label><input type="number" class="panel-input chart-val" value="${v}"></div>`;
             });
         }
 
-        // グラフデータを保存して閉じる
         function saveChartData() {
             const arr = []; 
             document.querySelectorAll('.chart-val').forEach(i => arr.push(Number(i.value)));
-            
             portalData.chartData = arr; 
-            
-            // ★即座にクラウドへ送信
             saveToCloud(); 
             closeModal();
         }
@@ -708,6 +700,141 @@
         }
 
         function signOut() { sessionStorage.clear(); window.location.href = "https://misemi-ya.github.io/www.misemi-ya.co.jp/university/index.html"; }
+
+        // ==========================================
+        //  アプリ風モーダル機能
+        // ==========================================
+        function openApp(appName) {
+            if (appName === 'share') {
+                window.location.href = 'share.html';
+                return;
+            }
+
+            const modal = document.getElementById('appModal');
+            const title = document.getElementById('appTitle');
+            const content = document.getElementById('appContent');
+            
+            modal.style.display = 'flex';
+            
+            switch(appName) {
+                case 'payroll':
+                    title.textContent = '給与明細 (Web明細)';
+                    content.innerHTML = `
+                        <div style="border:1px solid #ddd; padding:15px; border-radius:5px;">
+                            <h4>2026年1月支給分</h4>
+                            <table class="app-table">
+                                <tr><th>支給項目</th><th>金額</th><th>控除項目</th><th>金額</th></tr>
+                                <tr><td>基本給</td><td>¥300,000</td><td>健康保険</td><td>¥15,000</td></tr>
+                                <tr><td>役職手当</td><td>¥50,000</td><td>厚生年金</td><td>¥28,000</td></tr>
+                                <tr><td>通勤手当</td><td>¥10,000</td><td>雇用保険</td><td>¥1,500</td></tr>
+                                <tr><td><strong>支給合計</strong></td><td><strong>¥360,000</strong></td><td><strong>控除合計</strong></td><td><strong>¥55,000</strong></td></tr>
+                            </table>
+                            <div style="margin-top:15px; text-align:right; font-size:1.2rem; font-weight:bold; color:#003366;">差引支給額: ¥305,000</div>
+                        </div>`;
+                    break;
+                case 'expense':
+                    title.textContent = '経費精算申請';
+                    content.innerHTML = `
+                        <div class="panel-input-group">
+                            <label>利用日</label><input type="date" class="panel-input">
+                        </div>
+                        <div class="panel-input-group">
+                            <label>科目</label>
+                            <select class="panel-input">
+                                <option>旅費交通費</option>
+                                <option>消耗品費</option>
+                                <option>会議費</option>
+                            </select>
+                        </div>
+                        <div class="panel-input-group">
+                            <label>金額</label><input type="number" class="panel-input" placeholder="円">
+                        </div>
+                        <div class="panel-input-group">
+                            <label>備考</label><input type="text" class="panel-input" placeholder="訪問先など">
+                        </div>
+                        <button class="panel-btn" onclick="alert('申請しました')">申請する</button>`;
+                    break;
+                case 'approval':
+                    title.textContent = '電子決裁 (ワークフロー)';
+                    content.innerHTML = `
+                        <table class="app-table">
+                            <tr><th>件名</th><th>申請者</th><th>日付</th><th>状態</th></tr>
+                            <tr><td>PC購入の件</td><td>山田 太郎</td><td>2026/01/10</td><td><span style="color:red">承認待ち</span></td></tr>
+                            <tr><td>出張報告書</td><td>佐藤 花子</td><td>2026/01/08</td><td>決裁済</td></tr>
+                        </table>
+                        <div style="margin-top:15px; text-align:center;">
+                            <button class="panel-btn" style="width:auto; padding:5px 20px;">詳細を確認</button>
+                        </div>`;
+                    break;
+                case 'syllabus':
+                    title.textContent = 'シラバス・時間割管理';
+                    content.innerHTML = `
+                        <p>2025年度 後期</p>
+                        <table class="app-table">
+                            <tr><th>曜日</th><th>時限</th><th>科目名</th><th>教室</th></tr>
+                            <tr><td>月</td><td>2</td><td>経済学入門</td><td>A-101</td></tr>
+                            <tr><td>水</td><td>3</td><td>マクロ経済学</td><td>B-205</td></tr>
+                            <tr><td>金</td><td>1</td><td>ゼミナール</td><td>研究室</td></tr>
+                        </table>`;
+                    break;
+                case 'docs':
+                    title.textContent = '文書ライブラリ';
+                    content.innerHTML = `
+                        <ul style="list-style:none; padding:0;">
+                            <li style="padding:10px; border-bottom:1px solid #eee;"><i class="fa-solid fa-file-pdf" style="color:red"></i> 2026年度 学事日程表.pdf</li>
+                            <li style="padding:10px; border-bottom:1px solid #eee;"><i class="fa-solid fa-file-word" style="color:blue"></i> 出張申請書様式.docx</li>
+                            <li style="padding:10px; border-bottom:1px solid #eee;"><i class="fa-solid fa-file-powerpoint" style="color:orange"></i> 新入生ガイダンス資料.pptx</li>
+                        </ul>`;
+                    break;
+                case 'elearning':
+                    title.textContent = 'eラーニングシステム';
+                    content.innerHTML = `
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                            <div style="background:#f9f9f9; padding:10px; border-radius:5px;">
+                                <h5>情報セキュリティ研修</h5>
+                                <p style="font-size:0.8rem;">進捗: 80%</p>
+                                <button onclick="alert('学習を開始します')" style="padding:5px;">再開</button>
+                            </div>
+                            <div style="background:#f9f9f9; padding:10px; border-radius:5px;">
+                                <h5>ハラスメント防止講座</h5>
+                                <p style="font-size:0.8rem;">進捗: 未着手</p>
+                                <button onclick="alert('学習を開始します')" style="padding:5px;">開始</button>
+                            </div>
+                        </div>`;
+                    break;
+                case 'bbs':
+                    title.textContent = '学内掲示板';
+                    content.innerHTML = `
+                        <div class="news-item">
+                            <span class="news-badge">全学</span> <strong>停電のお知らせ</strong>
+                            <p style="font-size:0.8rem; margin:5px 0;">今週末、電気設備の点検に伴い全館停電となります。</p>
+                        </div>
+                        <div class="news-item">
+                            <span class="news-badge">教務</span> <strong>成績入力期間について</strong>
+                            <p style="font-size:0.8rem; margin:5px 0;">成績入力の締め切りは1月31日です。</p>
+                        </div>`;
+                    break;
+                case 'hr':
+                    title.textContent = '人事・総務メニュー';
+                    content.innerHTML = `
+                        <div class="services-grid">
+                            <div class="service-card" onclick="openApp('payroll')"><i class="fa-solid fa-money-check-dollar service-icon"></i><div>給与</div></div>
+                            <div class="service-card" onclick="openApp('expense')"><i class="fa-solid fa-receipt service-icon"></i><div>経費</div></div>
+                            <div class="service-card" onclick="alert('住所変更届などを開きます')"><i class="fa-solid fa-house-user service-icon"></i><div>身上異動</div></div>
+                        </div>`;
+                    break;
+                case 'groupware':
+                    title.textContent = 'グループウェア';
+                    content.innerHTML = '<p>チーム内のチャットやタスク管理機能がここに表示されます。</p>';
+                    break;
+                default:
+                    content.innerHTML = '<p>機能準備中です。</p>';
+            }
+        }
+
+        function closeAppModal() {
+            document.getElementById('appModal').style.display = 'none';
+        }
     </script>
 </body>
 </html>
