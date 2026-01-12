@@ -489,15 +489,6 @@
                         currentUserEmail = user.username;
                         setupUser(user);
                         
-                        if(localStorage.getItem('gmail_linked_' + currentUserEmail) === 'true') {
-                            const checkGapi = setInterval(() => {
-                                if(gisInited && gapiInited) {
-                                    clearInterval(checkGapi);
-                                    tokenClient.requestAccessToken({prompt: ''});
-                                }
-                            }, 500);
-                        }
-
                         setTimeout(() => {
                             document.getElementById('loading-screen').style.opacity = '0';
                             setTimeout(() => {
