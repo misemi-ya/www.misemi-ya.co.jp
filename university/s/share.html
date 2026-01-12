@@ -10,31 +10,32 @@
     <style>
         body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: #f6f8fc; color: #333; }
 
-        /* ▼▼▼ 偽装404画面 (ロック画面) ▼▼▼ */
-        #fake-error-screen {
+        /* ▼▼▼ ロック画面 (初期状態はローディング) ▼▼▼ */
+        #lock-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: white; z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             font-family: sans-serif; transition: opacity 0.5s;
         }
+        
+        /* 403表示用（最初は隠しておく） */
+        #error-content { display: none; text-align: center; }
+        
         .error-code { font-size: 8rem; font-weight: bold; color: #333; margin: 0; }
         .error-msg { font-size: 1.5rem; color: #666; margin-bottom: 20px; }
         .error-desc { color: #888; font-size: 0.9rem; margin-bottom: 30px; }
         
-        /* ステータス表示（デバッグ用） */
+        /* ステータス表示 */
         .status-box {
-            background: #f0f0f0; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.8rem; color: #555; text-align: left; width: 300px;
+            background: #f0f0f0; padding: 15px; border-radius: 8px; 
+            font-family: monospace; font-size: 0.8rem; color: #555; 
+            text-align: left; width: 250px; margin: 0 auto;
         }
         .status-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
         .status-val { font-weight: bold; }
-        .status-match { color: green; }
-        .status-mismatch { color: red; }
 
-        /* バックドア用の隠しボタンエリア */
-        .secret-trigger {
-            margin-top: 20px; color: #eee; cursor: pointer; font-size: 2rem; user-select: none;
-        }
-        .secret-trigger:active { color: #ddd; }
+        /* ローディング表示 */
+        #checking-msg { font-size: 1.2rem; color: #555; display: block; }
 
         /* ▼▼▼ 本物のコンテンツ (隠しておく) ▼▼▼ */
         #real-content { display: none; opacity: 0; transition: opacity 1s; }
@@ -62,40 +63,30 @@
 </head>
 <body>
 
-    <!-- 偽のエラー画面 -->
-    <div id="fake-error-screen">
-        <div class="error-code">403</div>
-        <div class="error-msg">Access Denied</div>
-        <p class="error-desc">
-            This portal is restricted to the specific secure VPN network.<br>
-            Please connect to <strong>public-vpn-129.opengw.net</strong>.
-        </p>
-        
-        <!-- ステータス表示 -->
-        <div class="status-box">
-            <div class="status-row">
-                <span>Status:</span>
-                <span id="check-status" style="color:orange;">Checking...</span>
-            </div>
-            <div class="status-row">
-                <span>Your IP:</span>
-                <span id="user-ip" class="status-val">...</span>
-            </div>
-            <div class="status-row">
-                <span>VPN IP:</span>
-                <span id="vpn-ip" class="status-val">...</span>
-            </div>
-            <div class="status-row" style="margin-top:5px; border-top:1px dashed #ccc; padding-top:5px;">
-                <span>Subnet Check:</span>
-                <span id="subnet-val" style="font-size:0.7rem;">...</span>
-            </div>
+    <!-- ロック画面 -->
+    <div id="lock-screen">
+        <!-- 初期表示：チェック中 -->
+        <div id="checking-msg">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> Security Checking...
         </div>
 
-        <!-- 隠しボタン (鍵アイコンを5回クリックで強制解除) -->
-        <div class="secret-trigger" onclick="triggerBackdoor()">
-            <i class="fa-solid fa-lock" id="lock-icon"></i>
+        <!-- エラー表示：アクセス拒否（条件不一致の時だけ表示） -->
+        <div id="error-content">
+            <div class="error-code">403</div>
+            <div class="error-msg">Access Denied</div>
+            <p class="error-desc">
+                Your connection does not meet the security requirements.<br>
+                Please connect via the specified VPN network.
+            </p>
+            
+            <div class="status-box">
+                <div class="status-row">
+                    <span>Your IP:</span>
+                    <span id="user-ip" class="status-val">...</span>
+                </div>
+            </div>
+            <p style="font-size:0.7rem; color:#ccc; margin-top:5px;">Misemi-ya Univ. Security Sys.</p>
         </div>
-        <p style="font-size:0.7rem; color:#ccc; margin-top:5px;">Misemi-ya Univ. Security Sys.</p>
     </div>
 
     <!-- 本物のコンテンツ -->
@@ -105,7 +96,7 @@
                 <a href="l.html" style="color:white; text-decoration:none;"><i class="fa-solid fa-arrow-left"></i> 戻る</a>
                 <h2>Share Portal</h2>
             </div>
-            <span class="vpn-badge"><i class="fa-solid fa-shield-halved"></i> SECURE VPN CONNECTED</span>
+            <span class="vpn-badge"><i class="fa-solid fa-shield-halved"></i> SECURE CONNECTION</span>
         </header>
 
         <div class="container">
@@ -115,7 +106,7 @@
                 <p>ここにドラッグ＆ドロップ、またはクリックして選択</p>
             </div>
 
-            <h3 style="border-bottom:2px solid #ddd; padding-bottom:10px;">共有フォルダ: 学内秘 (VPN接続中のみ表示)</h3>
+            <h3 style="border-bottom:2px solid #ddd; padding-bottom:10px;">共有フォルダ: 学内秘 (VPN接続中)</h3>
             
             <div class="file-grid">
                 <div class="file-card">
@@ -144,31 +135,23 @@
 
     <script>
         const VPN_HOST = 'public-vpn-129.opengw.net';
-        let clickCount = 0;
 
-        // IPアドレスからサブネット（最初の3つの塊）を抽出する関数
-        // 例: "219.100.37.239" -> "219.100.37"
+        // IPアドレスからサブネット（最初の3つの塊）を抽出
         function getSubnet(ip) {
             if (!ip) return "";
-            const parts = ip.split('.'); // ドットで分割
+            const parts = ip.split('.');
             if (parts.length >= 3) {
-                return `${parts[0]}.${parts[1]}.${parts[2]}`; // 3つ目までを結合
+                return `${parts[0]}.${parts[1]}.${parts[2]}`;
             }
-            return ip; // 形式がおかしい場合はそのまま返す
+            return ip;
         }
 
         async function verifyConnection() {
-            const statusEl = document.getElementById('check-status');
-            const userIpEl = document.getElementById('user-ip');
-            const vpnIpEl = document.getElementById('vpn-ip');
-            const subnetEl = document.getElementById('subnet-val');
-
             try {
-                // 1. 自分のIPを取得 (IPv4)
+                // 1. 自分のIPを取得
                 const ipRes = await fetch('https://api.ipify.org?format=json');
                 const ipData = await ipRes.json();
                 const myIp = ipData.ip;
-                userIpEl.innerText = myIp;
 
                 // 2. VPNホストのIPを解決
                 const dnsRes = await fetch(`https://dns.google/resolve?name=${VPN_HOST}&type=A`);
@@ -178,56 +161,34 @@
                 if (dnsData.Answer) {
                     vpnIp = dnsData.Answer[0].data; 
                 }
-                vpnIpEl.innerText = vpnIp;
 
-                // 3. サブネット比較（ここを変更しました！）
+                // 3. サブネット比較
                 const mySubnet = getSubnet(myIp);
                 const vpnSubnet = getSubnet(vpnIp);
-                
-                subnetEl.innerText = `${mySubnet} vs ${vpnSubnet}`;
 
+                // --- 判定ロジック ---
                 if (vpnIp !== "Unresolved" && mySubnet === vpnSubnet) {
-                    // サブネットが一致していればOK
-                    grantAccess("Subnet Matched");
+                    // 【許可】
+                    // ロック画面を消して、本物を表示
+                    document.getElementById('lock-screen').style.display = 'none';
+                    document.getElementById('real-content').style.display = 'block';
+                    setTimeout(() => { document.getElementById('real-content').style.opacity = 1; }, 50);
                 } else {
-                    statusEl.innerText = "Mismatch (Access Denied)";
-                    statusEl.className = "status-mismatch";
+                    // 【拒否】
+                    // チェック中メッセージを消して、403エラーを表示する
+                    document.getElementById('checking-msg').style.display = 'none';
+                    document.getElementById('error-content').style.display = 'block';
+                    
+                    // ユーザーIPだけ表示 (VPNのIPは隠す)
+                    document.getElementById('user-ip').innerText = myIp;
                 }
 
             } catch (error) {
+                // エラー時も拒否画面へ
                 console.error(error);
-                statusEl.innerText = "Check Error";
-            }
-        }
-
-        // アクセス許可処理
-        function grantAccess(reason) {
-            const fake = document.getElementById('fake-error-screen');
-            const real = document.getElementById('real-content');
-            
-            document.getElementById('check-status').innerText = "Access Granted: " + reason;
-            document.getElementById('check-status').style.color = "green";
-
-            setTimeout(() => {
-                fake.style.opacity = 0;
-                setTimeout(() => {
-                    fake.style.display = 'none';
-                    real.style.display = 'block';
-                    setTimeout(() => { real.style.opacity = 1; }, 50);
-                }, 500);
-            }, 800);
-        }
-
-        // バックドア（隠しコマンド）
-        // 鍵アイコンを5回クリックすると強制的に入れる
-        function triggerBackdoor() {
-            clickCount++;
-            const icon = document.getElementById('lock-icon');
-            icon.style.transform = `scale(${1 + clickCount * 0.1})`;
-            icon.style.color = clickCount > 2 ? "#d9534f" : "#eee";
-
-            if (clickCount >= 5) {
-                grantAccess("Admin Override");
+                document.getElementById('checking-msg').style.display = 'none';
+                document.getElementById('error-content').style.display = 'block';
+                document.getElementById('user-ip').innerText = "Network Error";
             }
         }
 
