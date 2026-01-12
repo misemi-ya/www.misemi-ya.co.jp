@@ -564,60 +564,36 @@
 
 async function startMainApp() {
     gapi.load('client', initializeGapiClient);
-    onValue(dbRef, (s) => {
-        if (s.val()) {
-            portalData = s.val();
-            updateUI(portalData);
-        } else {
-            saveToCloud();
-        }
-    });
-    initChart();
-
+    
     try {
-        if (typeof myMSALObj === 'undefined') {
-            location.href = "index.html";
-            return;
-        }
+        if (typeof myMSALObj !== 'undefined') {
+            // ✅ 修正ポイント1: MSALのリダイレクト処理が完了するのを「必ず」待つ
+            await myMSALObj.handleRedirectPromise();
 
-        const response = await myMSALObj.handleRedirectPromise();
-
-        if (response && response.account) {
-            myMSALObj.setActiveAccount(response.account);
-        }
-
-        let account = myMSALObj.getActiveAccount();
-        if (!account) {
+            // ✅ 修正ポイント2: 待機したあとにアカウントを確認する
             const accounts = myMSALObj.getAllAccounts();
+            
             if (accounts.length > 0) {
-                account = accounts[0];
-                myMSALObj.setActiveAccount(account);
+                // ログイン成功時の処理
+                const user = accounts[0];
+                currentUserEmail = user.username;
+                setupUser(user);
+                
+                // 画面を表示する
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('mainApp').style.display = 'grid';
+                    setTimeout(() => { document.getElementById('mainApp').style.opacity = '1'; }, 50);
+                }, 500);
+            } else {
+                // ✅ 本当にログインしていない時だけ index.html へ飛ばす
+                window.location.href = "index.html";
             }
         }
-
-        if (!account) {
-            // ここで初めて index.html に戻す
-            location.href = "index.html";
-            return;
-        }
-
-        currentUserEmail = account.username;
-        setupUser(account);
-
-        setTimeout(() => {
-            document.getElementById('loading-screen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('loading-screen').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'grid';
-                requestAnimationFrame(() => {
-                    document.getElementById('mainApp').style.opacity = '1';
-                });
-            }, 300);
-        }, 500);
-
     } catch (e) {
-        console.error(e);
-        location.href = "index.html";
+        console.error("Auth Error:", e);
+        window.location.href = "index.html";
     }
 }
 
