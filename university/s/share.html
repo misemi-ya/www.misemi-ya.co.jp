@@ -22,6 +22,7 @@
         .error-code { font-size: 8rem; font-weight: bold; color: #333; margin: 0; }
         .error-msg { font-size: 1.5rem; color: #666; margin-bottom: 20px; }
         .error-desc { color: #888; font-size: 0.9rem; }
+        #debug-info { margin-top: 20px; font-size: 0.7rem; color: #eee; } /* デバッグ用 */
 
         /* ▼▼▼ 本物のコンテンツ (隠しておく) ▼▼▼ */
         #real-content { display: none; }
@@ -56,6 +57,7 @@
         <p class="error-desc">The requested URL was not found on this server.</p>
         <hr style="width: 300px; border: 0; border-top: 1px solid #eee; margin: 20px 0;">
         <p style="font-size:0.8rem; color:#ccc;">Misemi-ya Univ. Web Server</p>
+        <div id="debug-info">Checking Connection...</div>
     </div>
 
     <!-- 本物のコンテンツ (VPN接続時のみ表示) -->
@@ -65,7 +67,7 @@
                 <a href="l.html" style="color:white; text-decoration:none;"><i class="fa-solid fa-arrow-left"></i> 戻る</a>
                 <h2>Share Portal</h2>
             </div>
-            <span class="vpn-badge"><i class="fa-solid fa-lock"></i> SECURE CONNECTION (VPN)</span>
+            <span class="vpn-badge"><i class="fa-solid fa-lock"></i> SECURE VPN: 129.opengw</span>
         </header>
 
         <div class="container">
@@ -103,29 +105,50 @@
     </div>
 
     <script>
-        // アクセス元のIP情報を取得するAPI
-        fetch('https://ipapi.co/json/')
-            .then(response => response.json())
-            .then(data => {
-                const country = data.country_code; // 国コード (JP, US, etc.)
-                
-                console.log("Access from:", country);
+        // 許可するVPNのホスト名
+        const TARGET_VPN_HOST = 'public-vpn-129.opengw.net';
 
-                // ▼ ロジック: 日本(JP)以外なら表示する ▼
-                // ※VPNを使ってアメリカ等のサーバーを経由すると JP ではなくなるため表示される
-                if (country !== 'JP') {
-                    // VPN経由(海外)とみなして表示
+        async function verifyConnection() {
+            try {
+                // 1. 自分のIPアドレスを取得 (ipify API)
+                const ipRes = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipRes.json();
+                const myIp = ipData.ip;
+
+                // 2. 指定されたVPNの現在のIPアドレスを解決 (Google DNS API)
+                const dnsRes = await fetch(`https://dns.google/resolve?name=${TARGET_VPN_HOST}`);
+                const dnsData = await dnsRes.json();
+                
+                let vpnIp = null;
+                // DNSの回答(Answer)からタイプ1(Aレコード=IPアドレス)を探す
+                if (dnsData.Answer) {
+                    const record = dnsData.Answer.find(ans => ans.type === 1);
+                    if (record) vpnIp = record.data;
+                }
+
+                // デバッグ用（本番では消しても良いですが、確認のためconsoleに残します）
+                console.log(`Your IP: ${myIp}`);
+                console.log(`VPN IP (${TARGET_VPN_HOST}): ${vpnIp}`);
+
+                // 3. 判定ロジック
+                if (vpnIp && myIp === vpnIp) {
+                    // 一致した場合 -> 画面を表示
                     document.getElementById('fake-error-screen').style.display = 'none';
                     document.getElementById('real-content').style.display = 'block';
                 } else {
-                    // 日本からの通常アクセスはエラー画面のまま
+                    // 一致しない場合 -> エラー画面のまま
                     // (何もしない)
+                    document.getElementById('debug-info').innerText = ""; // メッセージを消す
                 }
-            })
-            .catch(error => {
-                // APIエラー時などは安全のためエラー画面のままにする
-                console.error('Error:', error);
-            });
+
+            } catch (error) {
+                console.error("Check failed:", error);
+                // エラー時もアクセスさせない
+            }
+        }
+
+        // 実行
+        verifyConnection();
     </script>
 </body>
 </html>
