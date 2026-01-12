@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>職員ポータルホーム - 店魅偉屋大学</title>
+    <!-- MSAL.js の読み込み -->
+    <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #f5f7fa; font-family: 'Roboto', sans-serif; }
+        
+        /* ヘッダー */
+        .portal-header {
+            background-color: #003366; color: white;
+            padding: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .portal-nav-container {
+            max-width: 1200px; margin: 0 auto; padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .portal-title { font-size: 1.2rem; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        .user-info { display: flex; align-items: center; gap: 15px; font-size: 0.95rem; }
+        .user-name-display { font-weight: bold; color: #ffeb3b; } /* 名前を目立たせる */
+        
+        .btn-logout {
+            background-color: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);
+            color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 0.85rem;
+        }
+        .btn-logout:hover { background-color: rgba(255,255,255,0.3); }
+
+        /* メインコンテンツ */
+        .portal-main { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .welcome-banner {
+            background: linear-gradient(135deg, #0055a4, #003366);
+            color: white; padding: 30px; border-radius: 8px; margin-bottom: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .welcome-banner h2 { margin: 0 0 10px 0; font-size: 1.8rem; }
+        
+        /* カードグリッド */
+        .dashboard-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        .card {
+            background: white; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .card-header {
+            background-color: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #eee;
+            font-weight: bold; color: #333; display: flex; align-items: center; gap: 10px;
+        }
+        .card-body { padding: 20px; }
+        .card-body ul { list-style: none; padding: 0; margin: 0; }
+        .card-body li {
+            padding: 10px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between;
+        }
+        .card-body li:last-child { border-bottom: none; }
+        .card-body li a { color: #0056b3; text-decoration: none; }
+        .card-body li a:hover { text-decoration: underline; }
+        
+        .badge { background: #d9534f; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin-left: 5px; }
+        .date { color: #888; font-size: 0.85rem; }
+
+        /* ローディングオーバーレイ */
+        #loading {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 9999; display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; color: #666;
+        }
+    </style>
+</head>
+<body>
+    <!-- 認証確認までのローディング画面 -->
+    <div id="loading">認証情報を確認中...</div>
+
+    <header class="portal-header">
+        <div class="portal-nav-container">
+            <div class="portal-title">
+                <span>店魅偉屋大学 職員ポータル</span>
+            </div>
+            <div class="user-info">
+                <!-- ▼ここにAzureから取得した名前が入ります -->
+                <span>ようこそ、<span id="displayName" class="user-name-display">ゲスト</span> さん</span>
+                <button onclick="signOut()" class="btn-logout">サインアウト</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="portal-main">
+        <div class="welcome-banner">
+            <!-- バナー内にも名前を表示 -->
+            <h2>お疲れ様です、<span id="bannerName">職員</span>さん。</h2>
+            <p>本日のお知らせとタスクを確認してください。</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- お知らせカード -->
+            <div class="card">
+                <div class="card-header">
+                    <span>📢 大学からのお知らせ</span>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>
+                            <a href="#">【重要】次期履修登録システムについて</a>
+                            <span class="badge">NEW</span>
+                        </li>
+                        <li>
+                            <a href="#">構内一斉停電のお知らせ (12/25)</a>
+                            <span class="date">2025.12.10</span>
+                        </li>
+                        <li>
+                            <a href="#">年末年始の事務取り扱いについて</a>
+                            <span class="date">2025.12.01</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 事務システムリンク -->
+            <div class="card">
+                <div class="card-header">
+                    <span>💻 業務アプリケーション</span>
+                </div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <a href="#" class="btn btn-secondary" style="text-align:center; padding:10px;">教務システム</a>
+                        <a href="#" class="btn btn-secondary" style="text-align:center; padding:10px;">人事・給与</a>
+                        <a href="#" class="btn btn-secondary" style="text-align:center; padding:10px;">財務会計</a>
+                        <a href="#" class="btn btn-secondary" style="text-align:center; padding:10px;">施設予約</a>
+                        <a href="https://outlook.office.com" target="_blank" class="btn btn-primary" style="text-align:center; padding:10px; grid-column: span 2;">Outlook Web Mail</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ワークフロー -->
+            <div class="card">
+                <div class="card-header">
+                    <span>📝 承認待ち案件</span>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>
+                            <span>出張申請書（田中 太郎）</span>
+                            <a href="#">確認</a>
+                        </li>
+                        <li>
+                            <span>物品購入申請（研究支援課）</span>
+                            <a href="#">確認</a>
+                        </li>
+                        <li style="justify-content: center; margin-top: 10px;">
+                            <a href="#" style="font-weight:bold;">すべての案件を見る &gt;</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 設定ファイルの読み込み -->
+    <script src="msal-config.js"></script>
+
+    <script>
+        // ページ読み込み時の処理
+        window.addEventListener('load', async () => {
+            try {
+                // リダイレクト等の処理待ち
+                await myMSALObj.handleRedirectPromise();
+
+                const currentAccounts = myMSALObj.getAllAccounts();
+
+                if (currentAccounts.length === 0) {
+                    // ログインしていなければログイン画面へ強制送還
+                    window.location.href = "index.html";
+                } else {
+                    // ログイン済みならユーザー情報を取得して表示
+                    const account = currentAccounts[0];
+                    const username = account.name; // Azure上の表示名 (例: 山田 太郎)
+                    
+                    document.getElementById("displayName").textContent = username;
+                    document.getElementById("bannerName").textContent = username;
+                    
+                    // ローディング画面を消す
+                    document.getElementById("loading").style.display = "none";
+                }
+            } catch (error) {
+                console.error(error);
+                alert("認証エラーが発生しました。ログイン画面に戻ります。");
+                window.location.href = "index.html";
+            }
+        });
+
+        // サインアウト処理
+        function signOut() {
+            const logoutRequest = {
+                account: myMSALObj.getAccountByHomeId(myMSALObj.getAllAccounts()[0].homeAccountId),
+                postLogoutRedirectUri: msalConfig.auth.redirectUri // ログアウト後にindex.htmlに戻る
+            };
+            myMSALObj.logoutPopup(logoutRequest);
+            // または myMSALObj.logoutRedirect(logoutRequest);
+        }
+    </script>
+</body>
+</html>
