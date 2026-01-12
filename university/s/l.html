@@ -625,7 +625,7 @@
             document.getElementById("userInitial").textContent = (user.name || "U").charAt(0);
             updateGreeting(user.name);
             if (user.username && user.username.toLowerCase() === ADMIN_EMAIL.toLowerCase()) document.getElementById("adminControls").style.display = "block";
-            const safeEmail = user.username.replace(/\./g, '_');
+                   const safeEmail = user.username.replace(/\./g, '_');
             const now = new Date();
             push(ref(db, 'accessLogs'), {
                 user: user.name,
@@ -633,7 +633,7 @@
                 action: "LOGIN",
                 timestamp: Date.now(),
                 timeString: now.toLocaleString('ja-JP')
-            });       
+            });
         }
         function updateGreeting(name) {
             const h = new Date().getHours();
