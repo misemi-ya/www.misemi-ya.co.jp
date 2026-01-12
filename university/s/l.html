@@ -562,32 +562,65 @@
 
         window.addEventListener('load', verifyConnection);
 
-        async function startMainApp() {
-            gapi.load('client', initializeGapiClient);
-            onValue(dbRef, (s) => { if(s.val()) { portalData=s.val(); updateUI(portalData); } else saveToCloud(); });
-            initChart();
-
-            try {
-                if (typeof myMSALObj !== 'undefined') {
-                    await myMSALObj.handleRedirectPromise();
-                    const accounts = myMSALObj.getAllAccounts();
-                    if (accounts.length > 0) {
-                        const user = accounts[0];
-                        currentUserEmail = user.username;
-                        setupUser(user);
-                        
-                        setTimeout(() => {
-                            document.getElementById('loading-screen').style.opacity = '0';
-                            setTimeout(() => {
-                                document.getElementById('loading-screen').style.display = 'none';
-                                document.getElementById('mainApp').style.display = 'grid'; 
-                                setTimeout(() => document.getElementById('mainApp').style.opacity = '1', 50);
-                            }, 500);
-                        }, 1000);
-                    } else { window.location.href = "index.html"; }
-                }
-            } catch (e) { console.error(e); window.location.href = "index.html"; }
+async function startMainApp() {
+    gapi.load('client', initializeGapiClient);
+    onValue(dbRef, (s) => {
+        if (s.val()) {
+            portalData = s.val();
+            updateUI(portalData);
+        } else {
+            saveToCloud();
         }
+    });
+    initChart();
+
+    try {
+        if (typeof myMSALObj === 'undefined') {
+            location.href = "index.html";
+            return;
+        }
+
+        const response = await myMSALObj.handleRedirectPromise();
+
+        if (response && response.account) {
+            myMSALObj.setActiveAccount(response.account);
+        }
+
+        let account = myMSALObj.getActiveAccount();
+        if (!account) {
+            const accounts = myMSALObj.getAllAccounts();
+            if (accounts.length > 0) {
+                account = accounts[0];
+                myMSALObj.setActiveAccount(account);
+            }
+        }
+
+        if (!account) {
+            // ここで初めて index.html に戻す
+            location.href = "index.html";
+            return;
+        }
+
+        currentUserEmail = account.username;
+        setupUser(account);
+
+        setTimeout(() => {
+            document.getElementById('loading-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'grid';
+                requestAnimationFrame(() => {
+                    document.getElementById('mainApp').style.opacity = '1';
+                });
+            }, 300);
+        }, 500);
+
+    } catch (e) {
+        console.error(e);
+        location.href = "index.html";
+    }
+}
+
 
         async function initializeGapiClient() {
             await gapi.client.init({ discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest"] });
