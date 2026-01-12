@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STAFF PORTAL | Misemi-ya University</title>
-    <!-- MSAL.js -->
+    
+    <!-- MSAL.js (Microsoft認証) -->
     <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -34,7 +35,6 @@
             overflow-x: hidden;
         }
 
-        /* 英語のサブタイトル用スタイル */
         .en-sub {
             display: block; font-size: 0.6em; color: var(--text-sub);
             font-family: 'Roboto', sans-serif; font-weight: 300; letter-spacing: 1px;
@@ -55,7 +55,7 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* メインレイアウト */
+        /* レイアウト */
         .app-container {
             display: grid; grid-template-columns: 280px 1fr;
             min-height: 100vh; opacity: 0; transition: opacity 0.8s ease;
@@ -92,7 +92,6 @@
         /* メインコンテンツ */
         .main-content { padding: 2rem 3rem; overflow-y: auto; }
 
-        /* ヘッダー */
         .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
         .greeting h1 { margin: 0; font-size: 2rem; color: var(--primary-color); }
         .user-profile {
@@ -125,7 +124,6 @@
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;
         }
         
-        /* スタッツ */
         .stat-card { grid-column: span 1; display: flex; align-items: center; gap: 20px; height: 120px; }
         .stat-icon-box {
             width: 60px; height: 60px; background: rgba(0, 51, 102, 0.1);
@@ -137,36 +135,33 @@
         .chart-section { grid-column: span 3; min-height: 450px; }
         .news-section { grid-column: span 1; min-height: 450px; }
 
-        /* ニュースリスト */
         .news-item { padding: 15px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
         .news-badge { background: var(--accent-color); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; margin-right: 5px; }
 
-        /* ▼▼▼ 管理者用編集モードスタイル ▼▼▼ */
+        /* 管理者コントロール */
         .admin-controls {
             position: fixed; bottom: 30px; right: 30px; z-index: 1000;
-            display: none; /* デフォルト非表示 */
+            display: none;
         }
         .admin-fab {
             width: 60px; height: 60px; border-radius: 50%;
             background: linear-gradient(135deg, #ff0055, #ff5500);
             color: white; font-size: 1.5rem; border: none;
             box-shadow: 0 5px 20px rgba(255, 0, 85, 0.4);
-            cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer; transition: all 0.3s;
             display: flex; justify-content: center; align-items: center;
         }
         .admin-fab:hover { transform: scale(1.1); }
         .admin-fab.active { transform: rotate(45deg); background: #333; }
-
+        
+        /* 編集モード */
         .edit-mode .editable-text {
             border: 2px dashed #ff5500;
             background: rgba(255, 85, 0, 0.05);
             cursor: text; min-width: 20px; display: inline-block;
             padding: 2px 5px; border-radius: 4px;
         }
-        .edit-mode .chart-container {
-            cursor: pointer;
-            position: relative;
-        }
+        .edit-mode .chart-container { cursor: pointer; position: relative; }
         .edit-mode .chart-container::after {
             content: "EDIT GRAPH DATA";
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -184,32 +179,24 @@
         .edit-panel {
             background: white; width: 400px; padding: 30px; border-radius: 20px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        
         .panel-input-group { margin-bottom: 15px; }
-        .panel-input-group label { display: block; font-size: 0.8rem; color: #666; margin-bottom: 5px; }
-        .panel-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        .panel-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         .panel-btn { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-
     </style>
 </head>
 <body>
-
-    <!-- ローディング画面 -->
+    <!-- ローディング -->
     <div id="loading-screen">
         <div class="spinner"></div>
         <h3 style="margin: 20px 0 5px 0; color:#333;">ログイン中</h3>
         <span style="font-size:0.8rem; color:#888; letter-spacing:1px;">LOGGING IN...</span>
     </div>
 
-    <!-- アプリケーション全体 -->
     <div class="app-container" id="mainApp">
-        <!-- サイドバー -->
         <aside class="sidebar">
             <div class="brand">
-                <img src="../校章.png" alt="Misemi-ya Logo">
+                <img src="../校章.png" alt="Misemi-ya Logo" onerror="this.style.display='none'">
                 <div class="brand-text">店魅偉屋大学</div>
                 <div class="brand-sub">Misemi-ya University</div>
             </div>
@@ -220,6 +207,7 @@
                         <div>ダッシュボード<span class="nav-text-en">Dashboard</span></div>
                     </a>
                 </li>
+                <!-- 他のメニューリンク... -->
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="fa-solid fa-envelope"></i>
@@ -241,7 +229,6 @@
             </ul>
         </aside>
 
-        <!-- メインコンテンツ -->
         <main class="main-content">
             <div class="header-area">
                 <div class="greeting">
@@ -250,7 +237,6 @@
                         <span id="clockDisplay">Checking time...</span>
                     </div>
                 </div>
-                
                 <div class="user-profile">
                     <img src="../校章.png" alt="logo" style="height:30px; opacity:0.8; margin-right:5px;">
                     <div class="avatar-circle" id="userInitial">U</div>
@@ -258,75 +244,64 @@
                         <div style="font-weight:bold; font-size:0.9rem;" id="userName">User</div>
                         <div class="en-sub">STAFF ACCOUNT</div>
                     </div>
-                    <button class="btn-logout" onclick="signOut()" title="Sign Out">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                    </button>
+                    <button class="btn-logout" onclick="signOut()" title="Sign Out"><i class="fa-solid fa-right-from-bracket"></i></button>
                 </div>
             </div>
 
-            <!-- 編集可能コンテンツエリア -->
             <div class="dashboard-grid">
-                <!-- スタッツ 1 -->
+                <!-- Stat 1 -->
                 <div class="glass-card stat-card">
                     <div class="stat-icon-box"><i class="fa-solid fa-inbox"></i></div>
                     <div>
-                        <div class="stat-value editable-text" id="stat1-val">12</div>
+                        <div class="stat-value editable-text" id="stat1-val">...</div>
                         <div class="stat-label">未読メール<span class="en-sub">Unread Mails</span></div>
                     </div>
                 </div>
-                <!-- スタッツ 2 -->
+                <!-- Stat 2 -->
                 <div class="glass-card stat-card">
                     <div class="stat-icon-box" style="color:#28a745; background:rgba(40,167,69,0.1);"><i class="fa-solid fa-check-double"></i></div>
                     <div>
-                        <div class="stat-value editable-text" id="stat2-val">5</div>
+                        <div class="stat-value editable-text" id="stat2-val">...</div>
                         <div class="stat-label">完了タスク<span class="en-sub">Completed</span></div>
                     </div>
                 </div>
-                <!-- スタッツ 3 -->
+                <!-- Stat 3 -->
                 <div class="glass-card stat-card">
                     <div class="stat-icon-box" style="color:#dc3545; background:rgba(220,53,69,0.1);"><i class="fa-solid fa-triangle-exclamation"></i></div>
                     <div>
-                        <div class="stat-value editable-text" id="stat3-val">2</div>
+                        <div class="stat-value editable-text" id="stat3-val">...</div>
                         <div class="stat-label">要対応<span class="en-sub">Urgent</span></div>
                     </div>
                 </div>
-                <!-- スタッツ 4 -->
+                <!-- Stat 4 -->
                 <div class="glass-card stat-card">
                     <div class="stat-icon-box" style="color:var(--accent-color); background:rgba(201,163,70,0.1);"><i class="fa-solid fa-users"></i></div>
                     <div>
-                        <div class="stat-value editable-text" id="stat4-val">84</div>
+                        <div class="stat-value editable-text" id="stat4-val">...</div>
                         <div class="stat-label">来訪者数<span class="en-sub">Visitors</span></div>
                     </div>
                 </div>
 
-                <!-- グラフエリア -->
                 <div class="glass-card chart-section">
-                    <h3 class="editable-text" id="chart-title">学内システム アクセス状況</h3>
+                    <h3 class="editable-text" id="chart-title">システムアクセス状況</h3>
                     <span class="en-sub" style="margin-bottom:20px;">SYSTEM ACCESS ANALYTICS</span>
-                    
                     <div class="chart-container" style="height: 350px; width: 100%; position: relative;">
                         <canvas id="myChart"></canvas>
                     </div>
                 </div>
 
-                <!-- お知らせエリア -->
                 <div class="glass-card news-section">
                     <h3>お知らせ一覧</h3>
                     <span class="en-sub" style="margin-bottom:20px;">NOTIFICATIONS & NEWS</span>
-                    
-                    <div id="news-container">
-                        <!-- JSで生成 -->
-                    </div>
+                    <div id="news-container"></div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- 管理者用ツールボタン (特定の人のみ表示) -->
+    <!-- 編集ボタン (管理者のみ) -->
     <div class="admin-controls" id="adminControls">
-        <button class="admin-fab" onclick="toggleEditMode()" title="編集モード切替">
-            <i class="fa-solid fa-pen"></i>
-        </button>
+        <button class="admin-fab" onclick="toggleEditMode()" title="編集モード切替"><i class="fa-solid fa-pen"></i></button>
     </div>
 
     <!-- グラフ編集モーダル -->
@@ -335,61 +310,112 @@
             <h3 style="margin-top:0;">グラフデータを編集</h3>
             <p class="en-sub">EDIT CHART DATA</p>
             <div id="chartInputs"></div>
-            <button class="panel-btn" onclick="saveChartData()">変更を保存 (SAVE)</button>
+            <button class="panel-btn" onclick="saveChartData()">クラウドに保存 (SAVE)</button>
             <button class="panel-btn" style="background:#999; margin-top:10px;" onclick="closeModal()">キャンセル (CANCEL)</button>
         </div>
     </div>
 
     <script src="msal-config.js"></script>
 
-    <script>
+    <!-- ▼▼▼ JS部分：Firebase対応 ▼▼▼ -->
+    <script type="module">
+        // Firebaseライブラリのインポート (CDN)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
         // ==========================================
-        //  設定: 管理者メールアドレス
+        //  ▼▼▼ Firebaseの設定 ▼▼▼
+        //  ここに手順2で取得した内容を貼り付けてください
+        // ==========================================
+const firebaseConfig = {
+
+  apiKey: "AIzaSyAuj26lGBWGdcfiLoiCl8s0jTQN3UBu_iM",
+
+  authDomain: "misemiya-portal.firebaseapp.com",
+
+  databaseURL: "https://misemiya-portal-default-rtdb.firebaseio.com",
+
+  projectId: "misemiya-portal",
+
+  storageBucket: "misemiya-portal.firebasestorage.app",
+
+  messagingSenderId: "869803502016",
+
+  appId: "1:869803502016:web:341b0d0d9d6a4f88c00025",
+
+  measurementId: "G-6NQX4H60XC"
+
+};
+
+
+        // Firebase初期化
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const dbRef = ref(db, 'portalData'); // 'portalData'という場所に保存します
+
+        // ==========================================
+        //  管理者設定
         // ==========================================
         const ADMIN_EMAIL = "u0626241@edu-misemi-ya.ddo.jp";
         let isEditMode = false;
-
-        // データ保存用のキー
-        const STORAGE_KEY = "misemiya_portal_data";
-
-        // デフォルトデータ
+        
+        // デフォルトデータ（DBが空の時用）
         let portalData = {
-            stats: { s1: "12", s2: "5", s3: "2", s4: "84" },
+            stats: { s1: "0", s2: "0", s3: "0", s4: "0" },
             chartTitle: "学内システム アクセス状況",
-            chartData: [120, 190, 300, 250, 200, 280, 310],
-            news: [
-                { badge: "重要", text: "令和7年度 入試対応マニュアルの配布", date: "2026.01.12" },
-                { badge: "通知", text: "定期サーバーメンテナンスのお知らせ", date: "2026.01.10" },
-                { badge: "経理", text: "年末調整書類の再提出について", date: "2026.01.08" }
-            ]
+            chartData: [0,0,0,0,0,0,0],
+            news: [{ badge: "info", text: "Loading data...", date: "..." }]
         };
 
+        let myChartInstance = null;
+
+        // グローバル関数として公開する（moduleだとonclickから見えないため）
+        window.toggleEditMode = toggleEditMode;
+        window.saveChartData = saveChartData;
+        window.closeModal = closeModal;
+        window.signOut = signOut;
+
         // ==========================================
-        //  1. 初期化と認証
+        //  1. 起動処理
         // ==========================================
         window.addEventListener('load', async () => {
-            loadData(); // 保存データの読み込み
-            renderNews(); // ニュース表示
-            initChart();  // グラフ表示
-            
-            try {
-                await myMSALObj.handleRedirectPromise();
-                const accounts = myMSALObj.getAllAccounts();
-
-                if (accounts.length === 0) {
-                    window.location.href = "index.html";
+            // Firebaseからデータをリアルタイム受信
+            // (誰かが編集すると、すべての端末でここが自動で動きます！)
+            onValue(dbRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    portalData = data;
+                    updateUI(portalData);
                 } else {
-                    const user = accounts[0];
-                    setupUser(user);
-                    
-                    // アニメーション
-                    setTimeout(() => {
-                        document.getElementById('loading-screen').style.opacity = '0';
+                    // データがなければ初期化
+                    updateUI(portalData);
+                }
+            });
+
+            initChart(); // グラフ枠作成
+            
+            // MSALログイン処理
+            try {
+                // MSALオブジェクトはmsal-config.jsで定義済みの前提
+                // window.myMSALObj等にアクセスできるようにする
+                if (typeof myMSALObj !== 'undefined') {
+                    await myMSALObj.handleRedirectPromise();
+                    const accounts = myMSALObj.getAllAccounts();
+                    if (accounts.length > 0) {
+                        const user = accounts[0];
+                        setupUser(user);
+                        
+                        // 画面表示アニメーション
                         setTimeout(() => {
-                            document.getElementById('loading-screen').style.display = 'none';
-                            document.getElementById('mainApp').style.opacity = '1';
-                        }, 500);
-                    }, 1000);
+                            document.getElementById('loading-screen').style.opacity = '0';
+                            setTimeout(() => {
+                                document.getElementById('loading-screen').style.display = 'none';
+                                document.getElementById('mainApp').style.opacity = '1';
+                            }, 500);
+                        }, 1000);
+                    } else {
+                        window.location.href = "index.html";
+                    }
                 }
             } catch (e) {
                 console.error(e);
@@ -397,87 +423,102 @@
             }
         });
 
-        function setupUser(user) {
-            document.getElementById("userName").textContent = user.name || "職員";
-            document.getElementById("userInitial").textContent = (user.name || "U").charAt(0);
-            updateGreeting(user.name);
+        // UI反映
+        function updateUI(data) {
+            document.getElementById('stat1-val').textContent = data.stats.s1;
+            document.getElementById('stat2-val').textContent = data.stats.s2;
+            document.getElementById('stat3-val').textContent = data.stats.s3;
+            document.getElementById('stat4-val').textContent = data.stats.s4;
+            document.getElementById('chart-title').textContent = data.chartTitle;
 
-            // 管理者チェック！
-            if (user.username.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-                document.getElementById("adminControls").style.display = "block";
-                console.log("Admin Logged In: Edit Mode Available");
+            // グラフ更新
+            if (myChartInstance) {
+                myChartInstance.data.datasets[0].data = data.chartData;
+                myChartInstance.update();
+            }
+
+            // ニュース更新
+            if (data.news) {
+                const container = document.getElementById('news-container');
+                container.innerHTML = '<ul style="list-style:none; padding:0;">' + 
+                    data.news.map(item => `
+                        <li class="news-item editable-text">
+                            <span class="news-badge">${item.badge}</span>
+                            ${item.text}
+                            <div style="font-size:0.75rem; color:#999; margin-top:5px;">${item.date}</div>
+                        </li>
+                    `).join('') + '</ul>';
+                
+                // 編集モード中なら再適用
+                if(isEditMode) setupEditEvents();
             }
         }
 
         // ==========================================
-        //  2. データの読み書き (LocalStorage)
+        //  2. 編集・保存機能 (Firebaseへ送信)
         // ==========================================
-        function loadData() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                portalData = JSON.parse(saved);
-                // テキスト反映
-                document.getElementById('stat1-val').textContent = portalData.stats.s1;
-                document.getElementById('stat2-val').textContent = portalData.stats.s2;
-                document.getElementById('stat3-val').textContent = portalData.stats.s3;
-                document.getElementById('stat4-val').textContent = portalData.stats.s4;
-                document.getElementById('chart-title').textContent = portalData.chartTitle;
-            }
-        }
-
-        function saveData() {
-            // 現在の画面のテキストを取得して保存
+        function saveToCloud() {
+            // 画面の現在の値をオブジェクトに詰める
             portalData.stats.s1 = document.getElementById('stat1-val').textContent;
             portalData.stats.s2 = document.getElementById('stat2-val').textContent;
             portalData.stats.s3 = document.getElementById('stat3-val').textContent;
             portalData.stats.s4 = document.getElementById('stat4-val').textContent;
             portalData.chartTitle = document.getElementById('chart-title').textContent;
             
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(portalData));
+            // Firebaseへ送信！
+            set(dbRef, portalData)
+                .then(() => {
+                    console.log("Data saved to cloud!");
+                })
+                .catch((error) => {
+                    console.error("Error saving data: ", error);
+                    alert("保存に失敗しました。権限などを確認してください。");
+                });
         }
 
-        // ==========================================
-        //  3. 編集モード機能
-        // ==========================================
         function toggleEditMode() {
             isEditMode = !isEditMode;
             const fab = document.querySelector('.admin-fab');
-            const editables = document.querySelectorAll('.editable-text');
-            const chartContainer = document.querySelector('.chart-container');
             const body = document.body;
+            const chartContainer = document.querySelector('.chart-container');
 
             if (isEditMode) {
                 fab.classList.add('active');
-                fab.innerHTML = '<i class="fa-solid fa-check"></i>'; // チェックマークに変更
+                fab.innerHTML = '<i class="fa-solid fa-check"></i>';
                 body.classList.add('edit-mode');
-                
-                // テキストを編集可能に
-                editables.forEach(el => {
-                    el.contentEditable = "true";
-                    // 編集が終わったら自動保存
-                    el.addEventListener('blur', saveData); 
-                });
-
-                // グラフクリックイベント
+                setupEditEvents();
                 chartContainer.onclick = openChartModal;
-
             } else {
                 fab.classList.remove('active');
                 fab.innerHTML = '<i class="fa-solid fa-pen"></i>';
                 body.classList.remove('edit-mode');
-                
-                // 編集不可に戻す
-                editables.forEach(el => el.contentEditable = "false");
+                removeEditEvents();
                 chartContainer.onclick = null;
-                saveData(); // 念のため保存
+                // 編集終了時にクラウドへ保存
+                saveToCloud();
             }
         }
 
-        // ==========================================
-        //  4. グラフ編集モーダル
-        // ==========================================
-        let myChartInstance = null;
+        function setupEditEvents() {
+            const editables = document.querySelectorAll('.editable-text');
+            editables.forEach(el => {
+                el.contentEditable = "true";
+                // フォーカスが外れたら保存
+                el.onblur = saveToCloud;
+            });
+        }
 
+        function removeEditEvents() {
+            const editables = document.querySelectorAll('.editable-text');
+            editables.forEach(el => {
+                el.contentEditable = "false";
+                el.onblur = null;
+            });
+        }
+
+        // ==========================================
+        //  3. グラフ・ユーザー処理
+        // ==========================================
         function initChart() {
             const ctx = document.getElementById('myChart').getContext('2d');
             myChartInstance = new Chart(ctx, {
@@ -485,7 +526,7 @@
                 data: {
                     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                     datasets: [{
-                        label: 'Access Count',
+                        label: 'Access',
                         data: portalData.chartData,
                         borderColor: '#003366',
                         backgroundColor: 'rgba(0, 51, 102, 0.1)',
@@ -507,10 +548,9 @@
             const modal = document.getElementById('chartModal');
             const inputsDiv = document.getElementById('chartInputs');
             inputsDiv.innerHTML = '';
-
-            // 入力欄を生成
+            
             portalData.chartData.forEach((val, index) => {
-                const days = ['月 (Mon)', '火 (Tue)', '水 (Wed)', '木 (Thu)', '金 (Fri)', '土 (Sat)', '日 (Sun)'];
+                const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
                 inputsDiv.innerHTML += `
                     <div class="panel-input-group">
                         <label>${days[index]}</label>
@@ -518,7 +558,6 @@
                     </div>
                 `;
             });
-
             modal.style.display = 'flex';
         }
 
@@ -531,28 +570,21 @@
             const newData = [];
             inputs.forEach(input => newData.push(Number(input.value)));
             
-            // データ更新
             portalData.chartData = newData;
-            myChartInstance.data.datasets[0].data = newData;
-            myChartInstance.update();
-            
-            saveData(); // ローカルストレージへ
+            // ここでsaveToCloudを呼ぶと自動で全体に反映される
+            saveToCloud();
             closeModal();
         }
 
-        // ==========================================
-        //  5. その他ユーティリティ
-        // ==========================================
-        function renderNews() {
-            const container = document.getElementById('news-container');
-            container.innerHTML = '<ul style="list-style:none; padding:0;">' + 
-                portalData.news.map(item => `
-                    <li class="news-item editable-text" contenteditable="${isEditMode}">
-                        <span class="news-badge">${item.badge}</span>
-                        ${item.text}
-                        <div style="font-size:0.75rem; color:#999; margin-top:5px;">${item.date}</div>
-                    </li>
-                `).join('') + '</ul>';
+        function setupUser(user) {
+            document.getElementById("userName").textContent = user.name || "職員";
+            document.getElementById("userInitial").textContent = (user.name || "U").charAt(0);
+            updateGreeting(user.name);
+
+            // 管理者チェック
+            if (user.username && user.username.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+                document.getElementById("adminControls").style.display = "block";
+            }
         }
 
         function updateGreeting(name) {
@@ -566,7 +598,7 @@
                 `${g}, <span style="color:var(--primary-color)">${name}</span>.
                  <span class="en-sub" style="font-size:0.5em; margin-top:5px;">MISEMI-YA UNIVERSITY STAFF PORTAL</span>`;
         }
-
+        
         setInterval(() => {
             const now = new Date();
             document.getElementById('clockDisplay').innerText = now.toLocaleString('ja-JP', { weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
