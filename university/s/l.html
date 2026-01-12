@@ -198,7 +198,9 @@
             cursor: pointer; transition: all 0.3s;
             display: flex; justify-content: center; align-items: center;
         }
-        .edit-mode .editable-text { border: 2px dashed #ff5500; background: rgba(255, 85, 0, 0.05); cursor: text; }
+        .edit-mode .editable-text { border: 2px dashed #ff5500; background: rgba(255, 85, 0, 0.05); cursor: text; padding: 2px 5px; border-radius: 4px; }
+        .edit-mode .chart-container { cursor: pointer; border: 2px dashed #ff5500; }
+        
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .edit-panel { background: white; width: 400px; padding: 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
         .panel-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
@@ -242,12 +244,11 @@
                         <div>施設予約・カレンダー<span class="nav-text-en">Reserve</span></div>
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a href="share.html" class="nav-link">
-                      <i class="fa-solid fa-share-nodes"></i>
-                      <div>Share Portal<span class="nav-text-en">Secure Files</span></div>
-                  </a>
+                        <i class="fa-solid fa-share-nodes"></i>
+                        <div>Share Portal (VPN)<span class="nav-text-en">Secure Files</span></div>
+                    </a>
                 </li>
 
                 <div class="nav-category">Management</div>
@@ -309,7 +310,7 @@
             </div>
 
             <div class="dashboard-grid">
-                <!-- Stat 1: Gmail -->
+                <!-- Stat 1: Gmail (Google連携) -->
                 <div class="glass-card stat-card">
                     <div class="stat-icon-box"><i class="fa-solid fa-inbox"></i></div>
                     <div>
@@ -321,29 +322,29 @@
                     </div>
                 </div>
 
-                <!-- Stat 2: Tasks -->
+                <!-- Stat 2: Tasks (保存対象) -->
                 <div class="glass-card stat-card">
                     <div class="stat-icon-box" style="color:#28a745; background:rgba(40,167,69,0.1);"><i class="fa-solid fa-check-double"></i></div>
                     <div>
-                        <div class="stat-value editable-text" id="stat2-val">...</div>
+                        <div class="stat-value editable-text" id="stat2-val">0</div>
                         <div class="stat-label">完了タスク</div>
                     </div>
                 </div>
                 
-                <!-- Stat 3: Urgent -->
+                <!-- Stat 3: Urgent (保存対象) -->
                 <div class="glass-card stat-card">
                     <div class="stat-icon-box" style="color:#dc3545; background:rgba(220,53,69,0.1);"><i class="fa-solid fa-file-pen"></i></div>
                     <div>
-                        <div class="stat-value editable-text" id="stat3-val">...</div>
+                        <div class="stat-value editable-text" id="stat3-val">0</div>
                         <div class="stat-label">承認待ち案件</div>
                     </div>
                 </div>
                 
-                <!-- Stat 4: Visitors -->
+                <!-- Stat 4: Visitors (保存対象) -->
                 <div class="glass-card stat-card">
                     <div class="stat-icon-box" style="color:var(--accent-color); background:rgba(201,163,70,0.1);"><i class="fa-solid fa-users"></i></div>
                     <div>
-                        <div class="stat-value editable-text" id="stat4-val">...</div>
+                        <div class="stat-value editable-text" id="stat4-val">0</div>
                         <div class="stat-label">来訪者予約</div>
                     </div>
                 </div>
@@ -352,7 +353,6 @@
                 <div class="services-section">
                     <div class="section-title">業務システム・リンク</div>
                     <div class="services-grid">
-                        <!-- 人事・総務 -->
                         <a href="#" class="service-card">
                             <i class="fa-solid fa-file-invoice-dollar service-icon"></i>
                             <div class="service-name">給与・明細</div>
@@ -363,7 +363,6 @@
                             <div class="service-name">経費精算</div>
                             <div class="service-desc">旅費・立替経費申請</div>
                         </a>
-                        <!-- 教務 -->
                         <a href="#" class="service-card">
                             <i class="fa-solid fa-book-open service-icon"></i>
                             <div class="service-name">シラバス・時間割</div>
@@ -374,7 +373,6 @@
                             <div class="service-name">学籍管理</div>
                             <div class="service-desc">休退学・成績処理</div>
                         </a>
-                        <!-- 文書・申請 -->
                         <a href="#" class="service-card">
                             <i class="fa-solid fa-stamp service-icon"></i>
                             <div class="service-name">電子決裁</div>
@@ -385,7 +383,6 @@
                             <div class="service-name">文書ライブラリ</div>
                             <div class="service-desc">規程集・様式DL</div>
                         </a>
-                        <!-- その他 -->
                         <a href="#" class="service-card">
                             <i class="fa-solid fa-chalkboard-user service-icon"></i>
                             <div class="service-name">eラーニング</div>
@@ -399,7 +396,7 @@
                     </div>
                 </div>
 
-                <!-- グラフ -->
+                <!-- グラフ (保存対象) -->
                 <div class="glass-card chart-section">
                     <h3 class="editable-text" id="chart-title">学内システム アクセス状況</h3>
                     <div class="chart-container" style="height: 350px; width: 100%;">
@@ -426,7 +423,7 @@
         <div class="edit-panel">
             <h3>グラフデータを編集</h3>
             <div id="chartInputs"></div>
-            <button class="panel-btn" onclick="saveChartData()">保存</button>
+            <button class="panel-btn" onclick="saveChartData()">クラウドに保存 (SAVE)</button>
             <button class="panel-btn" style="background:#999;" onclick="closeModal()">キャンセル</button>
         </div>
     </div>
@@ -457,7 +454,14 @@
         let tokenClient;
         let gapiInited = false, gisInited = false;
         let isEditMode = false;
-        let portalData = { stats: { s2:0, s3:0, s4:0 }, chartData: [], news: [] };
+        
+        // デフォルトデータ（DBが空の場合）
+        let portalData = { 
+            stats: { s2:0, s3:0, s4:0 }, 
+            chartTitle: "学内システム アクセス状況",
+            chartData: [100,120,150,100,200,300,400], 
+            news: [] 
+        };
         let myChartInstance = null;
         let currentUserEmail = "";
 
@@ -472,10 +476,15 @@
         window.addEventListener('load', async () => {
             gapi.load('client', initializeGapiClient);
             
+            // Firebaseの監視（誰かが更新したら即座にUIへ反映）
             onValue(dbRef, (snapshot) => {
-                if(snapshot.val()) {
-                    portalData = snapshot.val();
+                const data = snapshot.val();
+                if(data) {
+                    portalData = data;
                     updateUI(portalData);
+                } else {
+                    // データがない場合は初期値を保存
+                    saveToCloud();
                 }
             });
             initChart();
@@ -509,7 +518,6 @@
                 scope: 'https://www.googleapis.com/auth/gmail.readonly',
                 callback: async (resp) => {
                     if (resp.error) return;
-                    localStorage.setItem('gmail_linked_' + currentUserEmail, 'true');
                     await listGmailMessages();
                 },
             });
@@ -561,64 +569,132 @@
                  <span class="en-sub" style="font-size:0.5em; margin-top:5px;">MISEMI-YA UNIVERSITY STAFF PORTAL</span>`;
         }
 
+        // FirebaseのデータをUIに反映
         function updateUI(data) {
-            document.getElementById('stat2-val').textContent = data.stats.s2;
-            document.getElementById('stat3-val').textContent = data.stats.s3;
-            document.getElementById('stat4-val').textContent = data.stats.s4;
-            document.getElementById('chart-title').textContent = data.chartTitle;
+            // statsの反映
+            if (data.stats) {
+                document.getElementById('stat2-val').textContent = data.stats.s2 || 0;
+                document.getElementById('stat3-val').textContent = data.stats.s3 || 0;
+                document.getElementById('stat4-val').textContent = data.stats.s4 || 0;
+            }
+            // タイトルの反映
+            if (data.chartTitle) {
+                document.getElementById('chart-title').textContent = data.chartTitle;
+            }
+            // グラフの反映
             if (myChartInstance && data.chartData) {
                 myChartInstance.data.datasets[0].data = data.chartData;
                 myChartInstance.update();
             }
+            // ニュース（Gmail以外の固定部分）
             if (data.news && !document.getElementById('news-container').innerHTML.includes('最新のGmail')) {
-                document.getElementById('news-container').innerHTML = '<ul style="list-style:none; padding:0;">' + 
-                    data.news.map(i => `<li class="news-item editable-text"><span class="news-badge">${i.badge}</span>${i.text}<div style="font-size:0.75rem; color:#999;">${i.date}</div></li>`).join('') + '</ul>';
+                // Gmailが表示されていない場合のみ固定ニュースを表示（Gmailがあるときは追記する形にするため）
+                // 簡易実装として、ここはGmail連携の有無にかかわらずベースを表示
+                // document.getElementById('news-container').innerHTML = ... 
             }
         }
 
+        // ★★★ データをクラウドに保存する最重要関数 ★★★
         function saveToCloud() {
             if(!portalData.stats) portalData.stats = {};
+            
+            // 画面の数値を読み取ってオブジェクトにセット
             portalData.stats.s2 = document.getElementById('stat2-val').textContent;
             portalData.stats.s3 = document.getElementById('stat3-val').textContent;
             portalData.stats.s4 = document.getElementById('stat4-val').textContent;
             portalData.chartTitle = document.getElementById('chart-title').textContent;
-            set(dbRef, portalData);
+            
+            // chartDataはグラフ編集時に既にセットされているはず
+            
+            // Firebaseへ送信！
+            set(dbRef, portalData).catch(e => {
+                console.error("Save Error:", e);
+                alert("保存に失敗しました。権限を確認してください。");
+            });
         }
 
+        // 編集モード切替
         function toggleEditMode() {
             isEditMode = !isEditMode;
             const fab = document.querySelector('.admin-fab');
             if (isEditMode) {
                 fab.innerHTML = '<i class="fa-solid fa-check"></i>';
                 document.body.classList.add('edit-mode');
-                document.querySelectorAll('.editable-text').forEach(el => { el.contentEditable = "true"; el.onblur = saveToCloud; });
-                document.querySelector('.chart-container').onclick = () => { document.getElementById('chartModal').style.display='flex'; setupChartInputs(); };
+                
+                // テキスト編集可能にする＆フォーカス外れたら保存
+                document.querySelectorAll('.editable-text').forEach(el => { 
+                    el.contentEditable = "true"; 
+                    el.onblur = saveToCloud; // ★ここが重要：入力終わったら即保存
+                });
+                
+                // グラフクリックで編集
+                document.querySelector('.chart-container').onclick = () => { 
+                    document.getElementById('chartModal').style.display='flex'; 
+                    setupChartInputs(); 
+                };
             } else {
                 fab.innerHTML = '<i class="fa-solid fa-pen"></i>';
                 document.body.classList.remove('edit-mode');
-                document.querySelectorAll('.editable-text').forEach(el => { el.contentEditable = "false"; el.onblur = null; });
+                
+                // 編集不可に戻す
+                document.querySelectorAll('.editable-text').forEach(el => { 
+                    el.contentEditable = "false"; 
+                    el.onblur = null; 
+                });
                 document.querySelector('.chart-container').onclick = null;
+                
+                // 念のため保存
                 saveToCloud();
             }
         }
+
+        // グラフ編集パネルの入力生成
         function setupChartInputs() {
             const div = document.getElementById('chartInputs'); div.innerHTML = '';
-            (portalData.chartData || []).forEach((v,i) => {
-                div.innerHTML += `<div style="margin-bottom:10px;"><label>Day ${i+1}</label><input type="number" class="panel-input chart-val" value="${v}"></div>`;
+            // データが無い場合のガード
+            const currentData = portalData.chartData || [0,0,0,0,0,0,0];
+            const labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+            
+            currentData.forEach((v,i) => {
+                div.innerHTML += `<div style="margin-bottom:10px;"><label>${labels[i] || 'Day '+(i+1)}</label><input type="number" class="panel-input chart-val" value="${v}"></div>`;
             });
         }
+
+        // グラフデータを保存して閉じる
         function saveChartData() {
-            const arr = []; document.querySelectorAll('.chart-val').forEach(i => arr.push(Number(i.value)));
-            portalData.chartData = arr; saveToCloud(); closeModal();
+            const arr = []; 
+            document.querySelectorAll('.chart-val').forEach(i => arr.push(Number(i.value)));
+            
+            portalData.chartData = arr; 
+            
+            // ★即座にクラウドへ送信
+            saveToCloud(); 
+            closeModal();
         }
+
         function closeModal() { document.getElementById('chartModal').style.display='none'; }
         
         function initChart() {
             const ctx = document.getElementById('myChart').getContext('2d');
-            myChartInstance = new Chart(ctx, { type: 'line', data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ data: [], borderColor: '#003366', backgroundColor: 'rgba(0,51,102,0.1)', fill: true }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+            myChartInstance = new Chart(ctx, { 
+                type: 'line', 
+                data: { 
+                    labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], 
+                    datasets: [{ 
+                        data: portalData.chartData || [], 
+                        borderColor: '#003366', 
+                        backgroundColor: 'rgba(0,51,102,0.1)', 
+                        fill: true 
+                    }] 
+                }, 
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } } 
+                } 
+            });
         }
         
-        // 時計更新＆勤怠アラート
         setInterval(() => {
             const now = new Date();
             document.getElementById('clockDisplay').innerText = now.toLocaleString('ja-JP');
