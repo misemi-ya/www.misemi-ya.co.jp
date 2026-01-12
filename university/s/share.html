@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Portal | Misemi-ya University</title>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: #f6f8fc; color: #333; }
+
+        /* ▼▼▼ 偽装404画面 (デフォルトで表示) ▼▼▼ */
+        #fake-error-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-family: sans-serif;
+        }
+        .error-code { font-size: 8rem; font-weight: bold; color: #333; margin: 0; }
+        .error-msg { font-size: 1.5rem; color: #666; margin-bottom: 20px; }
+        .error-desc { color: #888; font-size: 0.9rem; }
+
+        /* ▼▼▼ 本物のコンテンツ (隠しておく) ▼▼▼ */
+        #real-content { display: none; }
+
+        /* デザイン */
+        header { background: #003366; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+        .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+        .file-card {
+            background: white; padding: 20px; border-radius: 10px; text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer;
+        }
+        .file-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .icon-box { font-size: 3rem; color: #003366; margin-bottom: 10px; }
+        .file-name { font-weight: bold; margin-bottom: 5px; }
+        .file-meta { font-size: 0.8rem; color: #888; }
+        .upload-area {
+            border: 2px dashed #003366; padding: 30px; text-align: center;
+            background: #eef2f7; border-radius: 10px; margin-bottom: 30px; cursor: pointer;
+        }
+        .vpn-badge {
+            background: #28a745; color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 偽のエラー画面 (日本からのアクセスにはこれを見せる) -->
+    <div id="fake-error-screen">
+        <div class="error-code">404</div>
+        <div class="error-msg">Not Found</div>
+        <p class="error-desc">The requested URL was not found on this server.</p>
+        <hr style="width: 300px; border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <p style="font-size:0.8rem; color:#ccc;">Misemi-ya Univ. Web Server</p>
+    </div>
+
+    <!-- 本物のコンテンツ (VPN接続時のみ表示) -->
+    <div id="real-content">
+        <header>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <a href="l.html" style="color:white; text-decoration:none;"><i class="fa-solid fa-arrow-left"></i> 戻る</a>
+                <h2>Share Portal</h2>
+            </div>
+            <span class="vpn-badge"><i class="fa-solid fa-lock"></i> SECURE CONNECTION (VPN)</span>
+        </header>
+
+        <div class="container">
+            <div class="upload-area" onclick="alert('ファイル選択ダイアログを開きます')">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size:2rem; color:#003366;"></i>
+                <h3>ファイルをアップロード</h3>
+                <p>ここにドラッグ＆ドロップ、またはクリックして選択</p>
+            </div>
+
+            <h3 style="border-bottom:2px solid #ddd; padding-bottom:10px;">共有フォルダ: 学内秘</h3>
+            
+            <div class="file-grid">
+                <div class="file-card">
+                    <div class="icon-box"><i class="fa-regular fa-file-pdf" style="color:#dc3545;"></i></div>
+                    <div class="file-name">2026年度予算案.pdf</div>
+                    <div class="file-meta">2.4 MB • 2時間前</div>
+                </div>
+                <div class="file-card">
+                    <div class="icon-box"><i class="fa-regular fa-file-excel" style="color:#28a745;"></i></div>
+                    <div class="file-name">教職員名簿_R7.xlsx</div>
+                    <div class="file-meta">150 KB • 昨日</div>
+                </div>
+                <div class="file-card">
+                    <div class="icon-box"><i class="fa-regular fa-folder" style="color:#f0ad4e;"></i></div>
+                    <div class="file-name">会議議事録</div>
+                    <div class="file-meta">フォルダ • 12項目</div>
+                </div>
+                <div class="file-card">
+                    <div class="icon-box"><i class="fa-regular fa-image" style="color:#17a2b8;"></i></div>
+                    <div class="file-name">キャンパスマップ.png</div>
+                    <div class="file-meta">5.1 MB • 3日前</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // アクセス元のIP情報を取得するAPI
+        fetch('https://ipapi.co/json/')
+            .then(response => response.json())
+            .then(data => {
+                const country = data.country_code; // 国コード (JP, US, etc.)
+                
+                console.log("Access from:", country);
+
+                // ▼ ロジック: 日本(JP)以外なら表示する ▼
+                // ※VPNを使ってアメリカ等のサーバーを経由すると JP ではなくなるため表示される
+                if (country !== 'JP') {
+                    // VPN経由(海外)とみなして表示
+                    document.getElementById('fake-error-screen').style.display = 'none';
+                    document.getElementById('real-content').style.display = 'block';
+                } else {
+                    // 日本からの通常アクセスはエラー画面のまま
+                    // (何もしない)
+                }
+            })
+            .catch(error => {
+                // APIエラー時などは安全のためエラー画面のままにする
+                console.error('Error:', error);
+            });
+    </script>
+</body>
+</html>
