@@ -58,84 +58,126 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* レイアウト */
         .app-container {
             display: grid; grid-template-columns: 280px 1fr;
             min-height: 100vh; opacity: 0; transition: opacity 0.8s ease;
         }
 
+        /* サイドバー */
         .sidebar {
             background: var(--primary-color); color: white;
             padding: 2rem 1.5rem; display: flex; flex-direction: column;
             box-shadow: 4px 0 20px rgba(0,0,0,0.2); z-index: 10;
+            overflow-y: auto; height: 100vh; position: sticky; top: 0;
         }
         .brand {
             display: flex; flex-direction: column; align-items: center;
-            margin-bottom: 3rem; text-align: center;
+            margin-bottom: 2rem; text-align: center;
         }
         .brand img { width: 80px; height: auto; margin-bottom: 10px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
         .brand-text { font-size: 1.2rem; font-weight: 700; letter-spacing: 1px; }
         .brand-sub { font-size: 0.7rem; opacity: 0.7; letter-spacing: 2px; }
 
-        .nav-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
-        .nav-item { margin-bottom: 0.8rem; }
+        .nav-category { font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 15px; margin-bottom: 5px; padding-left: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-menu { list-style: none; padding: 0; margin: 0; }
+        .nav-item { margin-bottom: 0.5rem; }
         .nav-link {
             display: flex; align-items: center; gap: 15px;
-            padding: 14px 20px; text-decoration: none; color: rgba(255,255,255,0.8);
-            border-radius: 12px; transition: all 0.3s ease;
-            font-size: 0.95rem;
+            padding: 10px 15px; text-decoration: none; color: rgba(255,255,255,0.8);
+            border-radius: 8px; transition: all 0.2s ease;
+            font-size: 0.9rem;
         }
         .nav-link:hover, .nav-link.active {
             background: rgba(255,255,255,0.15); color: #fff;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2); transform: translateX(5px);
+            transform: translateX(3px);
         }
-        .nav-text-en { font-size: 0.75rem; display: block; opacity: 0.6; margin-top: 2px; }
+        .nav-text-en { font-size: 0.7rem; display: block; opacity: 0.6; margin-top: 2px; }
 
+        /* メインコンテンツ */
         .main-content { padding: 2rem 3rem; overflow-y: auto; }
 
-        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
         .greeting h1 { margin: 0; font-size: 2rem; color: var(--primary-color); }
         .user-profile {
             display: flex; align-items: center; gap: 15px;
-            background: var(--glass-bg); padding: 10px 20px;
+            background: var(--glass-bg); padding: 8px 20px;
             border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             border: 1px solid rgba(255,255,255,0.8);
         }
         .avatar-circle {
-            width: 45px; height: 45px; background: var(--primary-color); color: white;
+            width: 40px; height: 40px; background: var(--primary-color); color: white;
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
         .btn-logout {
             background: none; border: none; color: #d9534f; cursor: pointer;
             font-size: 1.2rem; transition: transform 0.2s;
         }
-        .btn-logout:hover { transform: scale(1.1); }
 
+        /* グラスカード共通 */
         .glass-card {
-            background: var(--glass-bg); border-radius: 20px; padding: 1.8rem;
+            background: var(--glass-bg); border-radius: 16px; padding: 1.5rem;
             box-shadow: var(--shadow); border: var(--glass-border);
-            backdrop-filter: blur(12px); transition: transform 0.3s ease;
-            position: relative;
+            backdrop-filter: blur(12px); position: relative;
         }
-        .glass-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(31, 38, 135, 0.2); }
-
+        
+        /* ダッシュボードグリッド */
         .dashboard-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;
+            margin-bottom: 2rem;
         }
         
-        .stat-card { grid-column: span 1; display: flex; align-items: center; gap: 20px; height: 120px; }
-        .stat-icon-box {
-            width: 60px; height: 60px; background: rgba(0, 51, 102, 0.1);
-            border-radius: 15px; display: flex; justify-content: center; align-items: center;
-            font-size: 1.8rem; color: var(--primary-color);
+        /* 勤怠エリア */
+        .attendance-section {
+            grid-column: span 4; display: flex; align-items: center; justify-content: space-between;
+            background: white; padding: 1.5rem; border-radius: 16px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05); border-left: 5px solid var(--primary-color);
         }
-        .stat-value { font-size: 2.2rem; font-weight: 700; line-height: 1; color: var(--primary-color); }
-        
-        .chart-section { grid-column: span 3; min-height: 450px; }
-        .news-section { grid-column: span 1; min-height: 450px; }
+        .time-box { display: flex; align-items: baseline; gap: 15px; }
+        .live-time { font-size: 2.5rem; font-weight: 700; color: #333; font-family: 'Roboto', monospace; }
+        .live-date { font-size: 1rem; color: #666; }
+        .attendance-btns { display: flex; gap: 15px; }
+        .btn-attend, .btn-leave {
+            padding: 10px 30px; border-radius: 30px; font-weight: bold; border: none; cursor: pointer; transition: transform 0.2s;
+        }
+        .btn-attend { background: #28a745; color: white; box-shadow: 0 4px 10px rgba(40,167,69,0.3); }
+        .btn-leave { background: #dc3545; color: white; box-shadow: 0 4px 10px rgba(220,53,69,0.3); }
+        .btn-attend:active, .btn-leave:active { transform: scale(0.95); }
 
-        .news-item { padding: 15px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .news-badge { background: var(--accent-color); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; margin-right: 5px; }
+        /* ステータスカード */
+        .stat-card { grid-column: span 1; display: flex; align-items: center; gap: 15px; height: 100px; }
+        .stat-icon-box {
+            width: 50px; height: 50px; background: rgba(0, 51, 102, 0.1);
+            border-radius: 12px; display: flex; justify-content: center; align-items: center;
+            font-size: 1.5rem; color: var(--primary-color);
+        }
+        .stat-value { font-size: 2rem; font-weight: 700; line-height: 1; color: var(--primary-color); }
+        .stat-label { font-size: 0.85rem; color: #666; }
+
+        /* サービスランチャー */
+        .services-section { grid-column: span 4; }
+        .section-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem; color: #444; border-left: 4px solid var(--accent-color); padding-left: 10px; }
+        
+        .services-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;
+        }
+        .service-card {
+            background: white; padding: 1.2rem; border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            text-decoration: none; color: #333; transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #eee;
+        }
+        .service-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.08); border-color: var(--accent-color); }
+        .service-icon { font-size: 2rem; margin-bottom: 10px; color: var(--primary-color); }
+        .service-name { font-weight: bold; font-size: 0.95rem; }
+        .service-desc { font-size: 0.75rem; color: #888; margin-top: 5px; }
+
+        /* グラフとニュース */
+        .chart-section { grid-column: span 3; min-height: 400px; }
+        .news-section { grid-column: span 1; min-height: 400px; }
+        .news-item { padding: 12px 0; border-bottom: 1px dashed #ddd; font-size: 0.9rem; }
+        .news-badge { background: var(--accent-color); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-right: 5px; }
 
         /* Gmail連携ボタン */
         .gmail-connect-btn {
@@ -146,10 +188,8 @@
         }
         .gmail-connect-btn:hover { background: rgba(217, 48, 37, 0.2); }
 
-        .admin-controls {
-            position: fixed; bottom: 30px; right: 30px; z-index: 1000;
-            display: none;
-        }
+        /* 管理者コントロール */
+        .admin-controls { position: fixed; bottom: 30px; right: 30px; z-index: 1000; display: none; }
         .admin-fab {
             width: 60px; height: 60px; border-radius: 50%;
             background: linear-gradient(135deg, #ff0055, #ff5500);
@@ -158,26 +198,9 @@
             cursor: pointer; transition: all 0.3s;
             display: flex; justify-content: center; align-items: center;
         }
-        
-        .edit-mode .editable-text {
-            border: 2px dashed #ff5500;
-            background: rgba(255, 85, 0, 0.05);
-            cursor: text; min-width: 20px; display: inline-block;
-            padding: 2px 5px; border-radius: 4px;
-        }
-        .edit-mode .chart-container { cursor: pointer; position: relative; }
-
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 2000;
-            display: none; justify-content: center; align-items: center;
-            backdrop-filter: blur(5px);
-        }
-        .edit-panel {
-            background: white; width: 400px; padding: 30px; border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        }
-        .panel-input-group { margin-bottom: 15px; }
+        .edit-mode .editable-text { border: 2px dashed #ff5500; background: rgba(255, 85, 0, 0.05); cursor: text; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .edit-panel { background: white; width: 400px; padding: 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
         .panel-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         .panel-btn { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
     </style>
@@ -190,12 +213,14 @@
     </div>
 
     <div class="app-container" id="mainApp">
+        <!-- サイドバー -->
         <aside class="sidebar">
             <div class="brand">
                 <img src="../校章.png" alt="Misemi-ya Logo" onerror="this.style.display='none'">
                 <div class="brand-text">店魅偉屋大学</div>
                 <div class="brand-sub">Misemi-ya University</div>
             </div>
+            
             <ul class="nav-menu">
                 <li class="nav-item">
                     <a href="l.html" class="nav-link active">
@@ -203,23 +228,44 @@
                         <div>ダッシュボード<span class="nav-text-en">Dashboard</span></div>
                     </a>
                 </li>
-                <!-- リンク先を実際のファイルに変更 -->
+                
+                <div class="nav-category">Applications</div>
                 <li class="nav-item">
                     <a href="mail.html" class="nav-link">
                         <i class="fa-solid fa-envelope"></i>
-                        <div>Webメール<span class="nav-text-en">Mail Box</span></div>
+                        <div>Webメール<span class="nav-text-en">Web Mail</span></div>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="reserve.html" class="nav-link">
                         <i class="fa-solid fa-calendar-check"></i>
-                        <div>施設予約<span class="nav-text-en">Reservations</span></div>
+                        <div>施設予約・カレンダー<span class="nav-text-en">Reserve</span></div>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fa-solid fa-sitemap"></i>
+                        <div>グループウェア<span class="nav-text-en">Groupware</span></div>
+                    </a>
+                </li>
+
+                <div class="nav-category">Management</div>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fa-solid fa-user-tie"></i>
+                        <div>人事・総務<span class="nav-text-en">HR & Admin</span></div>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="students.html" class="nav-link">
-                        <i class="fa-solid fa-user-graduate"></i>
-                        <div>学生検索<span class="nav-text-en">Students</span></div>
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <div>教務・学生支援<span class="nav-text-en">Academic</span></div>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fa-solid fa-file-signature"></i>
+                        <div>電子決裁・申請<span class="nav-text-en">Workflow</span></div>
                     </a>
                 </li>
             </ul>
@@ -244,59 +290,125 @@
                 </div>
             </div>
 
+            <!-- 勤怠打刻エリア -->
+            <div class="attendance-section" style="margin-bottom: 2rem;">
+                <div>
+                    <div style="font-weight:bold; color:#003366; margin-bottom:5px;">
+                        <i class="fa-solid fa-user-clock"></i> 勤怠管理
+                    </div>
+                    <div class="time-box">
+                        <div class="live-time" id="liveTimeDisplay">00:00:00</div>
+                        <div class="live-date" id="liveDateDisplay">YYYY/MM/DD</div>
+                    </div>
+                </div>
+                <div class="attendance-btns">
+                    <button class="btn-attend" onclick="stampTime('出勤')"><i class="fa-solid fa-sun"></i> 出勤</button>
+                    <button class="btn-leave" onclick="stampTime('退勤')"><i class="fa-solid fa-moon"></i> 退勤</button>
+                </div>
+            </div>
+
             <div class="dashboard-grid">
-                <!-- Stat 1: Gmail連携 -->
+                <!-- Stat 1: Gmail -->
                 <div class="glass-card stat-card">
                     <div class="stat-icon-box"><i class="fa-solid fa-inbox"></i></div>
                     <div>
-                        <div class="stat-value" id="stat1-val">
-                            <span style="font-size:0.5em; color:#999;">Loading...</span>
-                        </div>
-                        <div class="stat-label">
-                            Gmail未読数<span class="en-sub">Unread (Gmail)</span>
-                        </div>
+                        <div class="stat-value" id="stat1-val">...</div>
+                        <div class="stat-label">Gmail未読数</div>
                         <button id="gmailAuthBtn" class="gmail-connect-btn" onclick="handleGmailAuth()">
                             <i class="fa-brands fa-google"></i> 連携する
                         </button>
                     </div>
                 </div>
 
-                <!-- Stat 2 -->
+                <!-- Stat 2: Tasks -->
                 <div class="glass-card stat-card">
                     <div class="stat-icon-box" style="color:#28a745; background:rgba(40,167,69,0.1);"><i class="fa-solid fa-check-double"></i></div>
                     <div>
                         <div class="stat-value editable-text" id="stat2-val">...</div>
-                        <div class="stat-label">完了タスク<span class="en-sub">Completed</span></div>
+                        <div class="stat-label">完了タスク</div>
                     </div>
                 </div>
-                <!-- Stat 3 -->
+                
+                <!-- Stat 3: Urgent -->
                 <div class="glass-card stat-card">
-                    <div class="stat-icon-box" style="color:#dc3545; background:rgba(220,53,69,0.1);"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="stat-icon-box" style="color:#dc3545; background:rgba(220,53,69,0.1);"><i class="fa-solid fa-file-pen"></i></div>
                     <div>
                         <div class="stat-value editable-text" id="stat3-val">...</div>
-                        <div class="stat-label">要対応<span class="en-sub">Urgent</span></div>
+                        <div class="stat-label">承認待ち案件</div>
                     </div>
                 </div>
-                <!-- Stat 4 -->
+                
+                <!-- Stat 4: Visitors -->
                 <div class="glass-card stat-card">
                     <div class="stat-icon-box" style="color:var(--accent-color); background:rgba(201,163,70,0.1);"><i class="fa-solid fa-users"></i></div>
                     <div>
                         <div class="stat-value editable-text" id="stat4-val">...</div>
-                        <div class="stat-label">来訪者数<span class="en-sub">Visitors</span></div>
+                        <div class="stat-label">来訪者予約</div>
                     </div>
                 </div>
 
+                <!-- 業務システムランチャー -->
+                <div class="services-section">
+                    <div class="section-title">業務システム・リンク</div>
+                    <div class="services-grid">
+                        <!-- 人事・総務 -->
+                        <a href="#" class="service-card">
+                            <i class="fa-solid fa-file-invoice-dollar service-icon"></i>
+                            <div class="service-name">給与・明細</div>
+                            <div class="service-desc">明細確認・源泉徴収</div>
+                        </a>
+                        <a href="#" class="service-card">
+                            <i class="fa-solid fa-receipt service-icon"></i>
+                            <div class="service-name">経費精算</div>
+                            <div class="service-desc">旅費・立替経費申請</div>
+                        </a>
+                        <!-- 教務 -->
+                        <a href="#" class="service-card">
+                            <i class="fa-solid fa-book-open service-icon"></i>
+                            <div class="service-name">シラバス・時間割</div>
+                            <div class="service-desc">授業情報管理</div>
+                        </a>
+                        <a href="students.html" class="service-card">
+                            <i class="fa-solid fa-address-card service-icon"></i>
+                            <div class="service-name">学籍管理</div>
+                            <div class="service-desc">休退学・成績処理</div>
+                        </a>
+                        <!-- 文書・申請 -->
+                        <a href="#" class="service-card">
+                            <i class="fa-solid fa-stamp service-icon"></i>
+                            <div class="service-name">電子決裁</div>
+                            <div class="service-desc">稟議・購入申請</div>
+                        </a>
+                        <a href="#" class="service-card">
+                            <i class="fa-solid fa-folder-open service-icon"></i>
+                            <div class="service-name">文書ライブラリ</div>
+                            <div class="service-desc">規程集・様式DL</div>
+                        </a>
+                        <!-- その他 -->
+                        <a href="#" class="service-card">
+                            <i class="fa-solid fa-chalkboard-user service-icon"></i>
+                            <div class="service-name">eラーニング</div>
+                            <div class="service-desc">研修・FD/SD</div>
+                        </a>
+                        <a href="#" class="service-card">
+                            <i class="fa-solid fa-comments service-icon"></i>
+                            <div class="service-name">学内掲示板</div>
+                            <div class="service-desc">全学周知・連絡</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- グラフ -->
                 <div class="glass-card chart-section">
-                    <h3 class="editable-text" id="chart-title">システムアクセス状況</h3>
-                    <span class="en-sub" style="margin-bottom:20px;">SYSTEM ACCESS ANALYTICS</span>
-                    <div class="chart-container" style="height: 350px; width: 100%; position: relative;">
+                    <h3 class="editable-text" id="chart-title">学内システム アクセス状況</h3>
+                    <div class="chart-container" style="height: 350px; width: 100%;">
                         <canvas id="myChart"></canvas>
                     </div>
                 </div>
 
+                <!-- お知らせ -->
                 <div class="glass-card news-section">
                     <h3>お知らせ / Gmail</h3>
-                    <span class="en-sub" style="margin-bottom:20px;">NOTIFICATIONS & MAIL</span>
                     <div id="news-container"></div>
                 </div>
             </div>
@@ -305,17 +417,16 @@
 
     <!-- 管理者コントロール -->
     <div class="admin-controls" id="adminControls">
-        <button class="admin-fab" onclick="toggleEditMode()" title="編集モード切替"><i class="fa-solid fa-pen"></i></button>
+        <button class="admin-fab" onclick="toggleEditMode()"><i class="fa-solid fa-pen"></i></button>
     </div>
-
+    
     <!-- グラフ編集モーダル -->
     <div class="modal-overlay" id="chartModal">
         <div class="edit-panel">
-            <h3 style="margin-top:0;">グラフデータを編集</h3>
-            <p class="en-sub">EDIT CHART DATA</p>
+            <h3>グラフデータを編集</h3>
             <div id="chartInputs"></div>
-            <button class="panel-btn" onclick="saveChartData()">クラウドに保存 (SAVE)</button>
-            <button class="panel-btn" style="background:#999; margin-top:10px;" onclick="closeModal()">キャンセル (CANCEL)</button>
+            <button class="panel-btn" onclick="saveChartData()">保存</button>
+            <button class="panel-btn" style="background:#999;" onclick="closeModal()">キャンセル</button>
         </div>
     </div>
 
@@ -335,65 +446,52 @@
             appId: "1:869803502016:web:341b0d0d9d6a4f88c00025",
             measurementId: "G-6NQX4H60XC"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const dbRef = ref(db, 'portalData');
 
-        // Google Client ID
         const GOOGLE_CLIENT_ID = "385803166778-kg041ijpug65vf8ir68tubl8v804ncef.apps.googleusercontent.com"; 
-        
+        const ADMIN_EMAIL = "u0626241@edu-misemi-ya.ddo.jp";
+
         let tokenClient;
-        let gapiInited = false;
-        let gisInited = false;
+        let gapiInited = false, gisInited = false;
+        let isEditMode = false;
+        let portalData = { stats: { s2:0, s3:0, s4:0 }, chartData: [], news: [] };
+        let myChartInstance = null;
         let currentUserEmail = "";
 
-        const ADMIN_EMAIL = "u0626241@edu-misemi-ya.ddo.jp";
-        let isEditMode = false;
-        let portalData = {
-            stats: { s1: "0", s2: "0", s3: "0", s4: "0" },
-            chartTitle: "学内システム アクセス状況",
-            chartData: [0,0,0,0,0,0,0],
-            news: [{ badge: "info", text: "Loading...", date: "..." }]
-        };
-        let myChartInstance = null;
-
+        // Global exports
         window.toggleEditMode = toggleEditMode;
         window.saveChartData = saveChartData;
         window.closeModal = closeModal;
         window.signOut = signOut;
         window.handleGmailAuth = handleGmailAuth;
+        window.stampTime = stampTime;
 
         window.addEventListener('load', async () => {
             gapi.load('client', initializeGapiClient);
             
             onValue(dbRef, (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    portalData = data;
+                if(snapshot.val()) {
+                    portalData = snapshot.val();
                     updateUI(portalData);
                 }
             });
-
             initChart();
-            
+
             try {
                 if (typeof myMSALObj !== 'undefined') {
                     await myMSALObj.handleRedirectPromise();
                     const accounts = myMSALObj.getAllAccounts();
                     if (accounts.length > 0) {
                         const user = accounts[0];
-                        currentUserEmail = user.username; // 現在のユーザーIDを保持
+                        currentUserEmail = user.username;
                         setupUser(user);
                         
-                        // ★ Gmail連携状態のチェック
-                        const isLinked = localStorage.getItem('gmail_linked_' + currentUserEmail);
-                        if (isLinked === 'true') {
-                            // 連携済みなら、API準備完了を待って自動取得を試みる
+                        if(localStorage.getItem('gmail_linked_' + currentUserEmail) === 'true') {
                             const checkGapi = setInterval(() => {
                                 if(gisInited && gapiInited) {
                                     clearInterval(checkGapi);
-                                    // サイレントにトークン取得を試みる（許可済みならポップアップ出ない）
                                     tokenClient.requestAccessToken({prompt: ''});
                                 }
                             }, 500);
@@ -406,211 +504,52 @@
                                 document.getElementById('mainApp').style.opacity = '1';
                             }, 500);
                         }, 1000);
-                    } else {
-                        window.location.href = "index.html";
-                    }
+                    } else { window.location.href = "index.html"; }
                 }
-            } catch (e) {
-                console.error(e);
-                window.location.href = "index.html";
-            }
+            } catch (e) { console.error(e); window.location.href = "index.html"; }
         });
 
         async function initializeGapiClient() {
-            await gapi.client.init({
-                discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest"],
-            });
+            await gapi.client.init({ discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest"] });
             gapiInited = true;
-            maybeEnableButtons();
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: GOOGLE_CLIENT_ID,
+                scope: 'https://www.googleapis.com/auth/gmail.readonly',
+                callback: async (resp) => {
+                    if (resp.error) return;
+                    localStorage.setItem('gmail_linked_' + currentUserEmail, 'true');
+                    await listGmailMessages();
+                },
+            });
+            gisInited = true;
         }
 
-        function maybeEnableButtons() {
-            if (gapiInited) {
-                tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: GOOGLE_CLIENT_ID,
-                    scope: 'https://www.googleapis.com/auth/gmail.readonly',
-                    callback: async (resp) => {
-                        if (resp.error !== undefined) {
-                            throw (resp);
-                        }
-                        // ★ 連携成功時にフラグを保存
-                        localStorage.setItem('gmail_linked_' + currentUserEmail, 'true');
-                        await listGmailMessages();
-                    },
-                });
-                gisInited = true;
-            }
-        }
-
-        function handleGmailAuth() {
-            if(!gisInited) {
-                alert("Google機能の初期化中です。少々お待ちください。");
-                return;
-            }
-            tokenClient.requestAccessToken({prompt: 'consent'});
-        }
+        function handleGmailAuth() { tokenClient.requestAccessToken({prompt: 'consent'}); }
 
         async function listGmailMessages() {
             try {
-                const labelsResponse = await gapi.client.gmail.users.labels.get({ 'userId': 'me', 'id': 'INBOX' });
-                const unreadCount = labelsResponse.result.messagesUnread;
-                
-                document.getElementById('stat1-val').textContent = unreadCount;
+                const labels = await gapi.client.gmail.users.labels.get({ userId: 'me', id: 'INBOX' });
+                document.getElementById('stat1-val').textContent = labels.result.messagesUnread;
                 const btn = document.getElementById('gmailAuthBtn');
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> 連携済み';
-                btn.style.color = 'green';
-                btn.style.borderColor = 'green';
-                btn.style.background = 'rgba(0,128,0,0.1)';
+                btn.style.color = 'green'; btn.style.borderColor = 'green'; btn.style.background = 'rgba(0,128,0,0.1)';
 
-                const response = await gapi.client.gmail.users.messages.list({ 'userId': 'me', 'maxResults': 3 });
-                
-                const messages = response.result.messages;
-                if (messages && messages.length > 0) {
-                    const container = document.getElementById('news-container');
-                    // 重複追加防止
-                    if(container.innerHTML.includes('最新のGmail')) return;
-
-                    let gmailHtml = '<h4 style="margin:10px 0 5px 0; color:#d93025; font-size:0.8rem;"><i class="fa-brands fa-google"></i> 最新のGmail</h4><ul style="list-style:none; padding:0; margin-bottom:15px;">';
+                const msgs = await gapi.client.gmail.users.messages.list({ userId: 'me', maxResults: 3 });
+                if (msgs.result.messages) {
+                    const con = document.getElementById('news-container');
+                    if(con.innerHTML.includes('最新のGmail')) return;
                     
-                    for (const msg of messages) {
-                        const msgDetails = await gapi.client.gmail.users.messages.get({ 'userId': 'me', 'id': msg.id });
-                        const headers = msgDetails.result.payload.headers;
-                        const subject = headers.find(h => h.name === 'Subject')?.value || '(件名なし)';
-                        const date = headers.find(h => h.name === 'Date')?.value || '';
-                        const shortDate = new Date(date).toLocaleDateString('ja-JP');
-
-                        gmailHtml += `
-                            <li class="news-item" style="border-left:3px solid #d93025; padding-left:10px;">
-                                <span style="font-size:0.9rem; font-weight:bold;">${subject}</span>
-                                <div style="font-size:0.75rem; color:#999;">${shortDate}</div>
-                            </li>
-                        `;
+                    let html = '<h4 style="margin:10px 0 5px 0; color:#d93025;"><i class="fa-brands fa-google"></i> 最新のGmail</h4><ul style="list-style:none; padding:0;">';
+                    for (const m of msgs.result.messages) {
+                        const d = await gapi.client.gmail.users.messages.get({ userId: 'me', id: m.id });
+                        const h = d.result.payload.headers;
+                        const sub = h.find(x => x.name === 'Subject')?.value || '(無題)';
+                        html += `<li class="news-item" style="border-left:3px solid #d93025; padding-left:10px;"><b>${sub}</b></li>`;
                     }
-                    gmailHtml += '</ul><hr style="border:none; border-top:1px dashed #ddd;">';
-                    container.innerHTML = gmailHtml + container.innerHTML;
+                    html += '</ul><hr>';
+                    con.innerHTML = html + con.innerHTML;
                 }
-            } catch (err) { console.error(err); }
-        }
-
-        function updateUI(data) {
-            if(isNaN(document.getElementById('stat1-val').textContent)) {
-                // Gmail未連携時のみダミー
-            }
-            document.getElementById('stat2-val').textContent = data.stats.s2;
-            document.getElementById('stat3-val').textContent = data.stats.s3;
-            document.getElementById('stat4-val').textContent = data.stats.s4;
-            document.getElementById('chart-title').textContent = data.chartTitle;
-
-            if (myChartInstance && data.chartData) {
-                myChartInstance.data.datasets[0].data = data.chartData;
-                myChartInstance.update();
-            }
-
-            if (data.news && !document.getElementById('news-container').innerHTML.includes('最新のGmail')) {
-                const container = document.getElementById('news-container');
-                let baseHtml = '<ul style="list-style:none; padding:0;">' + 
-                    data.news.map(item => `
-                        <li class="news-item editable-text">
-                            <span class="news-badge">${item.badge}</span>
-                            ${item.text}
-                            <div style="font-size:0.75rem; color:#999; margin-top:5px;">${item.date}</div>
-                        </li>
-                    `).join('') + '</ul>';
-                container.innerHTML = baseHtml;
-                if(isEditMode) setupEditEvents();
-            }
-        }
-
-        function saveToCloud() {
-            if(!portalData.stats) portalData.stats = {};
-            portalData.stats.s2 = document.getElementById('stat2-val').textContent;
-            portalData.stats.s3 = document.getElementById('stat3-val').textContent;
-            portalData.stats.s4 = document.getElementById('stat4-val').textContent;
-            portalData.chartTitle = document.getElementById('chart-title').textContent;
-            set(dbRef, portalData).catch(e => alert("保存エラー"));
-        }
-
-        function toggleEditMode() {
-            isEditMode = !isEditMode;
-            const fab = document.querySelector('.admin-fab');
-            const body = document.body;
-            const chartContainer = document.querySelector('.chart-container');
-
-            if (isEditMode) {
-                fab.classList.add('active');
-                fab.innerHTML = '<i class="fa-solid fa-check"></i>';
-                body.classList.add('edit-mode');
-                setupEditEvents();
-                chartContainer.onclick = openChartModal;
-            } else {
-                fab.classList.remove('active');
-                fab.innerHTML = '<i class="fa-solid fa-pen"></i>';
-                body.classList.remove('edit-mode');
-                removeEditEvents();
-                chartContainer.onclick = null;
-                saveToCloud();
-            }
-        }
-
-        function setupEditEvents() {
-            document.querySelectorAll('.editable-text').forEach(el => {
-                el.contentEditable = "true";
-                el.onblur = saveToCloud;
-            });
-        }
-        function removeEditEvents() {
-            document.querySelectorAll('.editable-text').forEach(el => {
-                el.contentEditable = "false";
-                el.onblur = null;
-            });
-        }
-
-        function initChart() {
-            const ctx = document.getElementById('myChart').getContext('2d');
-            myChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'Access',
-                        data: portalData.chartData,
-                        borderColor: '#003366',
-                        backgroundColor: 'rgba(0, 51, 102, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        function openChartModal() {
-            if (!isEditMode) return;
-            const modal = document.getElementById('chartModal');
-            const inputsDiv = document.getElementById('chartInputs');
-            inputsDiv.innerHTML = '';
-            const currentData = portalData.chartData || [0,0,0,0,0,0,0];
-            currentData.forEach((val, index) => {
-                const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                inputsDiv.innerHTML += `<div class="panel-input-group"><label>${days[index]}</label><input type="number" class="panel-input chart-val-input" value="${val}"></div>`;
-            });
-            modal.style.display = 'flex';
-        }
-
-        function closeModal() { document.getElementById('chartModal').style.display = 'none'; }
-
-        function saveChartData() {
-            const inputs = document.querySelectorAll('.chart-val-input');
-            const newData = [];
-            inputs.forEach(input => newData.push(Number(input.value)));
-            portalData.chartData = newData;
-            saveToCloud();
-            closeModal();
+            } catch (e) { console.error(e); }
         }
 
         function setupUser(user) {
@@ -624,26 +563,83 @@
 
         function updateGreeting(name) {
             const h = new Date().getHours();
-            let g = "Hello";
-            if(h<12) g="Good Morning";
-            else if(h<18) g="Good Afternoon";
-            else g="Good Evening";
-            
-            // ★ カンマとドットの削除
+            let g = h<12 ? "Good Morning" : (h<18 ? "Good Afternoon" : "Good Evening");
             document.getElementById('greetingText').innerHTML = 
                 `${g} <span style="color:var(--primary-color)">${name}</span>
                  <span class="en-sub" style="font-size:0.5em; margin-top:5px;">MISEMI-YA UNIVERSITY STAFF PORTAL</span>`;
         }
+
+        function updateUI(data) {
+            document.getElementById('stat2-val').textContent = data.stats.s2;
+            document.getElementById('stat3-val').textContent = data.stats.s3;
+            document.getElementById('stat4-val').textContent = data.stats.s4;
+            document.getElementById('chart-title').textContent = data.chartTitle;
+            if (myChartInstance && data.chartData) {
+                myChartInstance.data.datasets[0].data = data.chartData;
+                myChartInstance.update();
+            }
+            if (data.news && !document.getElementById('news-container').innerHTML.includes('最新のGmail')) {
+                document.getElementById('news-container').innerHTML = '<ul style="list-style:none; padding:0;">' + 
+                    data.news.map(i => `<li class="news-item editable-text"><span class="news-badge">${i.badge}</span>${i.text}<div style="font-size:0.75rem; color:#999;">${i.date}</div></li>`).join('') + '</ul>';
+            }
+        }
+
+        function saveToCloud() {
+            if(!portalData.stats) portalData.stats = {};
+            portalData.stats.s2 = document.getElementById('stat2-val').textContent;
+            portalData.stats.s3 = document.getElementById('stat3-val').textContent;
+            portalData.stats.s4 = document.getElementById('stat4-val').textContent;
+            portalData.chartTitle = document.getElementById('chart-title').textContent;
+            set(dbRef, portalData);
+        }
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const fab = document.querySelector('.admin-fab');
+            if (isEditMode) {
+                fab.innerHTML = '<i class="fa-solid fa-check"></i>';
+                document.body.classList.add('edit-mode');
+                document.querySelectorAll('.editable-text').forEach(el => { el.contentEditable = "true"; el.onblur = saveToCloud; });
+                document.querySelector('.chart-container').onclick = () => { document.getElementById('chartModal').style.display='flex'; setupChartInputs(); };
+            } else {
+                fab.innerHTML = '<i class="fa-solid fa-pen"></i>';
+                document.body.classList.remove('edit-mode');
+                document.querySelectorAll('.editable-text').forEach(el => { el.contentEditable = "false"; el.onblur = null; });
+                document.querySelector('.chart-container').onclick = null;
+                saveToCloud();
+            }
+        }
+        function setupChartInputs() {
+            const div = document.getElementById('chartInputs'); div.innerHTML = '';
+            (portalData.chartData || []).forEach((v,i) => {
+                div.innerHTML += `<div style="margin-bottom:10px;"><label>Day ${i+1}</label><input type="number" class="panel-input chart-val" value="${v}"></div>`;
+            });
+        }
+        function saveChartData() {
+            const arr = []; document.querySelectorAll('.chart-val').forEach(i => arr.push(Number(i.value)));
+            portalData.chartData = arr; saveToCloud(); closeModal();
+        }
+        function closeModal() { document.getElementById('chartModal').style.display='none'; }
         
+        function initChart() {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            myChartInstance = new Chart(ctx, { type: 'line', data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ data: [], borderColor: '#003366', backgroundColor: 'rgba(0,51,102,0.1)', fill: true }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+        }
+        
+        // 時計更新＆勤怠アラート
         setInterval(() => {
             const now = new Date();
-            document.getElementById('clockDisplay').innerText = now.toLocaleString('ja-JP', { weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('clockDisplay').innerText = now.toLocaleString('ja-JP');
+            document.getElementById('liveTimeDisplay').innerText = now.toLocaleTimeString('ja-JP');
+            document.getElementById('liveDateDisplay').innerText = now.toLocaleDateString('ja-JP');
         }, 1000);
 
-        function signOut() {
-            sessionStorage.clear();
-            window.location.href = "https://misemi-ya.github.io/www.misemi-ya.co.jp/university/index.html";
+        function stampTime(type) {
+            const time = new Date().toLocaleTimeString('ja-JP');
+            alert(`【${type}】 ${time} に打刻しました。\n（※デモ用のため実際には保存されません）`);
         }
+
+        function signOut() { sessionStorage.clear(); window.location.href = "https://misemi-ya.github.io/www.misemi-ya.co.jp/university/index.html"; }
     </script>
 </body>
 </html>
