@@ -194,14 +194,17 @@
             }
         });
 
-        // サインアウト処理
+// サインアウト処理
         function signOut() {
             const logoutRequest = {
                 account: myMSALObj.getAccountByHomeId(myMSALObj.getAllAccounts()[0].homeAccountId),
-                postLogoutRedirectUri: msalConfig.auth.redirectUri // ログアウト後にindex.htmlに戻る
+                
+                // ▼▼▼ ログアウト後の戻り先を大学トップページに指定 ▼▼▼
+                postLogoutRedirectUri: "https://misemi-ya.github.io/www.misemi-ya.co.jp/university/index.html"
             };
-            myMSALObj.logoutPopup(logoutRequest);
-            // または myMSALObj.logoutRedirect(logoutRequest);
+            
+            // ▼▼▼ PopupではなくRedirectを使うと、画面全体が切り替わってスムーズに戻ります ▼▼▼
+            myMSALObj.logoutRedirect(logoutRequest);
         }
     </script>
 </body>
