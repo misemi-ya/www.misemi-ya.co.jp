@@ -196,15 +196,11 @@
 
 // サインアウト処理
         function signOut() {
-            const logoutRequest = {
-                account: myMSALObj.getAccountByHomeId(myMSALObj.getAllAccounts()[0].homeAccountId),
-                
-                // ▼▼▼ ログアウト後の戻り先を大学トップページに指定 ▼▼▼
-                postLogoutRedirectUri: "https://misemi-ya.github.io/www.misemi-ya.co.jp/university/index.html"
-            };
+            // 1. ブラウザに残っているログイン情報を消す（これがないと、戻った時にまた勝手にログインされてしまいます）
+            sessionStorage.clear();
             
-            // ▼▼▼ PopupではなくRedirectを使うと、画面全体が切り替わってスムーズに戻ります ▼▼▼
-            myMSALObj.logoutRedirect(logoutRequest);
+            // 2. 大学のトップページへ直接ジャンプ！
+            window.location.href = "https://misemi-ya.github.io/www.misemi-ya.co.jp/university/index.html";
         }
     </script>
 </body>
