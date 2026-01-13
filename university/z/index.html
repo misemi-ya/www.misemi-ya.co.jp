@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>店魅偉屋大学 在学生ポータル</title>
+    <!-- Microsoft Authentication Library (MSAL) -->
+    <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser-v2.min.js"></script>
+    <!-- デザイン用のTailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+    <!-- ヘッダー -->
+    <header class="bg-blue-900 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">店魅偉屋大学 学生ポータル</h1>
+            <div id="user-info" class="text-sm hidden">
+                <span id="username"></span> さん
+                <button onclick="signOut()" class="ml-4 bg-red-600 hover:bg-red-700 px-3 py-1 rounded">ログアウト</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow container mx-auto p-4 flex items-center justify-center">
+        
+        <!-- 1. 読み込み中画面 -->
+        <div id="loading-screen" class="text-center">
+            <div class="animate-spin h-10 w-10 border-4 border-blue-900 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p>ネットワーク環境を確認中...</p>
+        </div>
+
+        <!-- 2. 403 Forbidden 画面 (VPN未接続時) -->
+        <div id="error-screen" class="hidden text-center max-w-lg bg-white p-8 rounded shadow-lg border-l-8 border-red-600">
+            <h1 class="text-6xl font-bold text-red-600 mb-4">403</h1>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Forbidden (アクセス拒否)</h2>
+            <p class="text-gray-600 mb-6">
+                あなたのIPアドレス (<span id="user-ip" class="font-mono font-bold"></span>) からのアクセスは許可されていません。<br><br>
+                指定されたVPNに接続してから再度アクセスしてください。
+            </p>
+            <button onclick="location.reload()" class="bg-gray-800 text-white px-6 py-2 rounded hover:bg-gray-900">再読み込み</button>
+        </div>
+
+        <!-- 3. ログイン画面 (VPN接続OK, 未ログイン時) -->
+        <div id="login-screen" class="hidden text-center bg-white p-10 rounded-xl shadow-xl max-w-md w-full">
+            <h2 class="text-2xl font-bold text-blue-900 mb-6">在学生ログイン</h2>
+            <p class="text-gray-600 mb-8">大学発行のMicrosoftアカウントでログインしてください。</p>
+            <button onclick="signIn()" class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z"/></svg>
+                Microsoftアカウントでログイン
+            </button>
+            <p class="mt-4 text-xs text-gray-400">Secure Network Confirmed</p>
+        </div>
+
+        <!-- 4. ポータル画面 (ログイン完了時) -->
+        <div id="dashboard-screen" class="hidden w-full max-w-4xl">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-800 border-b pb-2 mb-4">📢 大学からのお知らせ</h2>
+                <ul class="space-y-3 text-gray-700">
+                    <li class="flex items-start">
+                        <span class="bg-red-100 text-red-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">重要</span>
+                        <span>後期授業料の納付期限について</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">News</span>
+                        <span>学園祭実行委員の募集開始</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-gray-100 text-gray-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">メンテ</span>
+                        <span>10月15日 図書館システム停止のお知らせ</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition cursor-pointer border-t-4 border-blue-500">
+                    <h3 class="font-bold text-lg mb-2">📄 履修登録</h3>
+                    <p class="text-sm text-gray-500">シラバス確認・登録・修正</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition cursor-pointer border-t-4 border-green-500">
+                    <h3 class="font-bold text-lg mb-2">📊 成績照会</h3>
+                    <p class="text-sm text-gray-500">GPA確認・単位修得状況</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition cursor-pointer border-t-4 border-purple-500">
+                    <h3 class="font-bold text-lg mb-2">🚌 バス時刻表</h3>
+                    <p class="text-sm text-gray-500">キャンパス間連絡バス</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-gray-800 text-gray-400 text-center p-4 text-xs">
+        &copy; 2026 Misemi-ya University. All rights reserved.
+    </footer>
+
+    <!-- ロジック部分 -->
+    <script>
+        // ==========================================
+        // ▼ 設定エリア (ここを書き換えてください) ▼
+        // ==========================================
+
+        // 1. 許可するVPNのIPアドレス (VPNに繋いで https://api.ipify.org で確認した数字)
+        const ALLOWED_VPN_IP = "219.100.37.239"; 
+
+        // 2. Azure AD (Entra ID) の設定
+        const msalConfig = {
+            auth: {
+                clientId: "ec756d6e-2c87-42c6-9071-43c4a2a3cc42", 
+                authority: "https://login.microsoftonline.com/common", // 特定のテナントがある場合は common を テナントID に変更
+                redirectUri: window.location.href // 現在のページに戻ってくる
+            },
+            cache: {
+                cacheLocation: "sessionStorage", 
+                storeAuthStateInCookie: false, 
+            }
+        };
+
+        // ==========================================
+        // ▲ 設定エリア終了 ▲
+        // ==========================================
+
+        const myMSALObj = new msal.PublicClientApplication(msalConfig);
+        
+        // 画面要素の取得
+        const loadingScreen = document.getElementById('loading-screen');
+        const errorScreen = document.getElementById('error-screen');
+        const loginScreen = document.getElementById('login-screen');
+        const dashboardScreen = document.getElementById('dashboard-screen');
+        const userInfo = document.getElementById('user-info');
+        const usernameSpan = document.getElementById('username');
+        const userIpSpan = document.getElementById('user-ip');
+
+        // 画面切り替え用関数
+        function showScreen(screen) {
+            [loadingScreen, errorScreen, loginScreen, dashboardScreen].forEach(el => el.classList.add('hidden'));
+            screen.classList.remove('hidden');
+        }
+
+        // メイン処理の開始
+        window.addEventListener('load', async () => {
+            try {
+                // 1. IPアドレスのチェック
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                const currentIp = ipData.ip;
+
+                userIpSpan.innerText = currentIp;
+
+                console.log(`Current IP: ${currentIp} / Allowed IP: ${ALLOWED_VPN_IP}`);
+
+                if (currentIp !== ALLOWED_VPN_IP) {
+                    // IPが一致しない場合 -> 403画面
+                    showScreen(errorScreen);
+                    return; 
+                }
+
+                // 2. IPチェックOKならログイン状態を確認
+                const loginResponse = await myMSALObj.handleRedirectPromise();
+                if (loginResponse) {
+                    handleLoginSuccess(loginResponse.account);
+                } else {
+                    const currentAccounts = myMSALObj.getAllAccounts();
+                    if (currentAccounts.length > 0) {
+                        handleLoginSuccess(currentAccounts[0]);
+                    } else {
+                        // 未ログイン -> ログイン画面
+                        showScreen(loginScreen);
+                    }
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert("ネットワークエラーが発生しました。");
+            }
+        });
+
+        // ログインボタン押下時
+        async function signIn() {
+            try {
+                await myMSALObj.loginRedirect({
+                    scopes: ["User.Read"]
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        // ログアウトボタン押下時
+        function signOut() {
+            const logoutRequest = {
+                account: myMSALObj.getAccountByHomeId(sessionStorage.getItem('homeAccountId'))
+            };
+            myMSALObj.logoutRedirect(logoutRequest);
+        }
+
+        // ログイン成功時の処理
+        function handleLoginSuccess(account) {
+            usernameSpan.innerText = account.name;
+            userInfo.classList.remove('hidden');
+            showScreen(dashboardScreen);
+        }
+    </script>
+</body>
+</html>
