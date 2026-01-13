@@ -26,20 +26,24 @@
             background: white; z-index: 10000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
+        #vpn-checking { font-size: 1.2rem; color: #555; }
+        #vpn-error { display: none; text-align: center; }
         .error-code { font-size: 6rem; font-weight: bold; color: #333; margin: 0; }
-        .error-desc { color: #666; margin-top: 10px; font-size: 0.9rem; }
+        .error-msg { font-size: 1.5rem; color: #666; margin-bottom: 20px; }
+        .status-box { background: #f0f0f0; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.8rem; color: #555; margin-top: 20px; }
         
         /* ログイン画面 */
         #login-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; z-index: 9999; display: none; /* 初期非表示 */
+            background: white; z-index: 9999; display: none;
             justify-content: center; align-items: center; flex-direction: column;
         }
         .login-box { text-align: center; padding: 40px; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 300px; }
         .ms-btn {
             background: #2f2f2f; color: white; border: none; padding: 12px 20px;
-            border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 10px; width: 100%; justify-content: center;
+            border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 10px; width: 100%; justify-content: center; font-weight: bold;
         }
+        .ms-btn:hover { background: #444; }
 
         /* メイン画面 */
         #app { display: none; }
@@ -76,11 +80,9 @@
         .id-name { font-size: 1.2rem; font-weight: bold; margin: 5px 0 15px 0; }
         .barcode { background: white; height: 30px; width: 100%; border-radius: 4px; }
 
-        /* メインコンテンツエリア */
+        /* コンテンツ */
         .content { display: flex; flex-direction: column; gap: 20px; }
-        
         .section-title { border-left: 5px solid var(--accent-color); padding-left: 10px; font-weight: bold; font-size: 1.1rem; margin-bottom: 15px; }
-
         .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         
@@ -105,21 +107,21 @@
 </head>
 <body>
 
-    <!-- VPNロック画面 -->
+    <!-- VPNロック -->
     <div id="vpn-lock-screen">
         <div id="vpn-checking">
             <i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color:#0056b3;"></i>
             <p style="margin-top:15px; color:#666;">Security Checking...</p>
         </div>
-        <div id="vpn-error" style="display:none; text-align:center;">
+        <div id="vpn-error">
             <div class="error-code">403</div>
-            <p style="font-size:1.5rem; font-weight:bold;">Access Denied</p>
-            <p class="error-desc">Please connect via the University VPN.</p>
-            <div style="margin-top:20px; font-family:monospace; color:#888;">Your IP: <span id="user-ip"></span></div>
+            <div class="error-msg">Access Denied</div>
+            <p>Please connect via <b>public-vpn-129.opengw.net</b></p>
+            <div class="status-box">Your IP: <span id="user-ip"></span></div>
         </div>
     </div>
 
-    <!-- ログイン画面 -->
+    <!-- ログイン -->
     <div id="login-screen">
         <div class="login-box">
             <img src="../校章.png" alt="Logo" style="height:60px; margin-bottom:20px;">
@@ -128,7 +130,7 @@
                 <i class="fa-brands fa-microsoft"></i> Sign in with Microsoft
             </button>
             <p style="font-size:0.8rem; color:#666; margin-top:15px;">
-                @edu-misemi-ya.ddo.jp<br>のアカウントでログインしてください
+                大学発行のアカウントでログインしてください
             </p>
         </div>
     </div>
@@ -142,25 +144,23 @@
             <div class="user-area">
                 <span id="header-name">Student</span>
                 <div class="avatar" id="header-avatar">S</div>
-                <i class="fa-solid fa-right-from-bracket" onclick="signOut()" style="cursor:pointer;"></i>
+                <i class="fa-solid fa-right-from-bracket" onclick="signOut()" style="cursor:pointer; margin-left:10px;" title="ログアウト"></i>
             </div>
         </header>
 
         <div class="container">
-            <!-- サイドバー (スマホでは上部グリッド) -->
+            <!-- サイドバー -->
             <aside class="sidebar">
-                <!-- デジタル学生証 -->
                 <div class="id-card">
                     <div style="font-size:0.8rem; opacity:0.8;">STUDENT ID CARD</div>
                     <div class="id-number" id="card-id">2024-0000</div>
                     <div class="id-name" id="card-name">Student Name</div>
                     <div class="barcode">
-                        <!-- バーコード風装飾 -->
                         <div style="height:100%; background:repeating-linear-gradient(90deg, #333 0, #333 2px, transparent 2px, transparent 4px);"></div>
                     </div>
                 </div>
 
-                <a href="#" class="menu-item"><i class="fa-solid fa-house"></i> ホーム</a>
+                <a href="../index.html" class="menu-item"><i class="fa-solid fa-house"></i> トップページ</a>
                 <a href="#" onclick="alert('LMSを開きます')" class="menu-item"><i class="fa-solid fa-chalkboard-user"></i> LMS (授業支援)</a>
                 <a href="#" onclick="alert('成績照会画面へ')" class="menu-item"><i class="fa-solid fa-chart-bar"></i> 成績照会</a>
                 <a href="#" onclick="alert('シラバス検索へ')" class="menu-item"><i class="fa-solid fa-book-open"></i> シラバス</a>
@@ -170,16 +170,14 @@
 
             <!-- コンテンツ -->
             <main class="content">
-                
-                <!-- 今日の授業 -->
                 <div class="card">
-                    <div class="section-title">Today's Classes (1/13 Mon)</div>
+                    <div class="section-title">Today's Classes</div>
                     <table class="timetable">
                         <tr>
-                            <th>1限 (9:00~)</th>
-                            <th>2限 (10:40~)</th>
-                            <th>3限 (13:00~)</th>
-                            <th>4限 (14:40~)</th>
+                            <th>1限</th>
+                            <th>2限</th>
+                            <th>3限</th>
+                            <th>4限</th>
                         </tr>
                         <tr>
                             <td><div class="class-cell" onclick="alert('英語Ia\n教室: 302')">英語 Ia<br><span style="font-size:0.7rem">302教室</span></div></td>
@@ -191,7 +189,6 @@
                 </div>
 
                 <div class="dashboard-grid">
-                    <!-- お知らせ -->
                     <div class="card" style="grid-column: span 2;">
                         <div class="section-title">News & Info</div>
                         <ul class="news-list">
@@ -203,41 +200,33 @@
                                 <div><span class="news-tag">通知</span> 定期試験の時間割発表について</div>
                                 <div style="color:#888;">昨日</div>
                             </li>
-                            <li class="news-item">
-                                <div><span class="news-tag">イベント</span> 学園祭実行委員の募集</div>
-                                <div style="color:#888;">3日前</div>
-                            </li>
                         </ul>
                     </div>
 
-                    <!-- TODO -->
                     <div class="card">
                         <div class="section-title">My Tasks</div>
                         <div style="font-size:0.9rem;">
                             <div style="margin-bottom:10px;"><i class="fa-regular fa-circle"></i> 英語レポート提出 (明日)</div>
                             <div style="margin-bottom:10px;"><i class="fa-regular fa-circle"></i> 奨学金申請 (1/20)</div>
-                            <div style="color:#888;"><i class="fa-regular fa-circle-check"></i> アンケート回答済</div>
                         </div>
                     </div>
                 </div>
-
             </main>
         </div>
     </div>
 
-    <!-- スクリプト (VPNチェック + 認証) -->
+    <!-- スクリプト -->
     <script>
+        // ==========================================
+        //  1. VPNチェック
+        // ==========================================
         const VPN_HOST = 'public-vpn-129.opengw.net';
-
-        // 1. VPNチェック
+        
         window.onload = async () => {
             await checkVPN();
         };
 
-        function getSubnet(ip) {
-            if (!ip) return "";
-            return ip.split('.').slice(0, 3).join('.');
-        }
+        function getSubnet(ip) { return ip ? ip.split('.').slice(0, 3).join('.') : ""; }
 
         async function checkVPN() {
             try {
@@ -250,7 +239,7 @@
                 const vpnSub = getSubnet(vpnIp);
 
                 if (vpnIp && mySub === vpnSub) {
-                    // VPN OK -> ロック解除してログインチェックへ
+                    // VPN OK -> ロック解除して認証へ
                     document.getElementById('vpn-lock-screen').style.display = 'none';
                     initAuth();
                 } else {
@@ -259,15 +248,15 @@
                     document.getElementById('vpn-error').style.display = 'block';
                     document.getElementById('user-ip').textContent = myIp;
                 }
-            } catch (e) {
-                document.getElementById('vpn-checking').innerText = "Network Error";
-            }
+            } catch (e) { document.getElementById('vpn-checking').innerText = "Network Error"; }
         }
 
-        // 2. 認証処理
+        // ==========================================
+        //  2. 認証設定 (学生用ID)
+        // ==========================================
         const msalConfig = {
             auth: {
-                clientId: "385803166778-kg041ijpug65vf8ir68tubl8v804ncef.apps.googleusercontent.com", 
+                clientId: "40568e89-c868-42c9-8a06-5874c6c0acc1", // 学生用ID
                 authority: "https://login.microsoftonline.com/common",
                 redirectUri: window.location.href
             }
@@ -281,7 +270,6 @@
                 if(accounts.length > 0) {
                     showApp(accounts[0]);
                 } else {
-                    // 未ログインならログイン画面表示
                     document.getElementById('login-screen').style.display = 'flex';
                 }
             } catch(e) { console.error(e); }
@@ -298,12 +286,11 @@
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             
-            // ユーザー情報セット
             document.getElementById('header-name').textContent = user.name;
             document.getElementById('header-avatar').textContent = user.name.charAt(0);
-            
             document.getElementById('card-name').textContent = user.name.toUpperCase();
-            // 学籍番号の生成（擬似ロジック）
+            
+            // 学籍番号（ユーザー名から生成）
             const id = user.username.split('@')[0].toUpperCase();
             document.getElementById('card-id').textContent = id.length > 8 ? id.substring(0,8) : id;
         }
