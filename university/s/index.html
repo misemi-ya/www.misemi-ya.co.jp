@@ -62,16 +62,26 @@
     <script src="msal-config.js"></script>
 
     <script>
+        // ★★★ 端末判定＆遷移関数 (新規追加) ★★★
+        function redirectUser() {
+            // 画面幅が768px以下ならスマホ版へ、それ以外はPC版へ
+            if (window.innerWidth <= 768) {
+                window.location.href = "sp/l.html";
+            } else {
+                window.location.href = "l.html";
+            }
+        }
+
         // ページ読み込み時にログイン状態を確認
         window.addEventListener('load', async () => {
             try {
                 // リダイレクト処理の完了待ち
                 await myMSALObj.handleRedirectPromise();
                 
-                // すでにログイン済みなら l.html へ移動
+                // すでにログイン済みなら振り分け実行
                 const currentAccounts = myMSALObj.getAllAccounts();
                 if (currentAccounts.length > 0) {
-                    window.location.href = "l.html";
+                    redirectUser(); // ★ここを変更
                 }
             } catch (error) {
                 console.error(error);
@@ -84,8 +94,8 @@
                 // ポップアップでログイン画面を開く
                 const loginResponse = await myMSALObj.loginPopup(loginRequest);
                 if(loginResponse) {
-                    // ログイン成功したら移動
-                    window.location.href = "l.html";
+                    // ログイン成功したら振り分け実行
+                    redirectUser(); // ★ここを変更
                 }
             } catch (error) {
                 console.error(error);
