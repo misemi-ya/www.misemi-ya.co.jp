@@ -113,15 +113,15 @@
             <i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color:#0056b3;"></i>
             <p style="margin-top:15px; color:#666;">Security Checking...</p>
         </div>
-        <div id="vpn-error">
+        <div id="vpn-error" style="display:none; text-align:center;">
             <div class="error-code">403</div>
             <div class="error-msg">Access Denied</div>
-            <p>Please connect via <b>public-vpn-129.opengw.net</b></p>
+            <p style="color:#666;">Please connect via public-vpn-129.opengw.net</p>
             <div class="status-box">Your IP: <span id="user-ip"></span></div>
         </div>
     </div>
 
-    <!-- ログイン -->
+    <!-- ログイン画面 -->
     <div id="login-screen">
         <div class="login-box">
             <img src="../校章.png" alt="Logo" style="height:60px; margin-bottom:20px;">
@@ -130,7 +130,7 @@
                 <i class="fa-brands fa-microsoft"></i> Sign in with Microsoft
             </button>
             <p style="font-size:0.8rem; color:#666; margin-top:15px;">
-                大学発行のアカウントでログインしてください
+                @edu-misemi-ya.eu.org<br>のアカウントでログインしてください
             </p>
         </div>
     </div>
@@ -144,7 +144,7 @@
             <div class="user-area">
                 <span id="header-name">Student</span>
                 <div class="avatar" id="header-avatar">S</div>
-                <i class="fa-solid fa-right-from-bracket" onclick="signOut()" style="cursor:pointer; margin-left:10px;" title="ログアウト"></i>
+                <i class="fa-solid fa-right-from-bracket" onclick="signOut()" style="cursor:pointer; margin-left:15px;" title="ログアウト"></i>
             </div>
         </header>
 
@@ -217,16 +217,17 @@
 
     <!-- スクリプト -->
     <script>
-        // ==========================================
-        //  1. VPNチェック
-        // ==========================================
         const VPN_HOST = 'public-vpn-129.opengw.net';
-        
+
+        // 1. VPNチェック
         window.onload = async () => {
             await checkVPN();
         };
 
-        function getSubnet(ip) { return ip ? ip.split('.').slice(0, 3).join('.') : ""; }
+        function getSubnet(ip) {
+            if (!ip) return "";
+            return ip.split('.').slice(0, 3).join('.');
+        }
 
         async function checkVPN() {
             try {
@@ -239,25 +240,24 @@
                 const vpnSub = getSubnet(vpnIp);
 
                 if (vpnIp && mySub === vpnSub) {
-                    // VPN OK -> ロック解除して認証へ
                     document.getElementById('vpn-lock-screen').style.display = 'none';
                     initAuth();
                 } else {
-                    // VPN NG
                     document.getElementById('vpn-checking').style.display = 'none';
                     document.getElementById('vpn-error').style.display = 'block';
                     document.getElementById('user-ip').textContent = myIp;
                 }
-            } catch (e) { document.getElementById('vpn-checking').innerText = "Network Error"; }
+            } catch (e) {
+                document.getElementById('vpn-checking').innerText = "Network Error";
+            }
         }
 
-        // ==========================================
-        //  2. 認証設定 (学生用ID)
-        // ==========================================
+        // 2. 認証処理
         const msalConfig = {
             auth: {
-                clientId: "40568e89-c868-42c9-8a06-5874c6c0acc1", // 学生用ID
-                authority: "https://login.microsoftonline.com/common",
+                clientId: "40568e89-c868-42c9-8a06-5874c6c0acc1", 
+                // ▼▼▼ 正しいテナントID指定のエンドポイント ▼▼▼
+                authority: "https://login.microsoftonline.com/f26d3362-79fe-4262-817a-531c7cdbf597",
                 redirectUri: window.location.href
             }
         };
@@ -288,8 +288,8 @@
             
             document.getElementById('header-name').textContent = user.name;
             document.getElementById('header-avatar').textContent = user.name.charAt(0);
-            document.getElementById('card-name').textContent = user.name.toUpperCase();
             
+            document.getElementById('card-name').textContent = user.name.toUpperCase();
             // 学籍番号（ユーザー名から生成）
             const id = user.username.split('@')[0].toUpperCase();
             document.getElementById('card-id').textContent = id.length > 8 ? id.substring(0,8) : id;
