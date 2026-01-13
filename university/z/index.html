@@ -12,7 +12,7 @@
     
     <style>
         :root {
-            --primary-color: #0056b3; /* 学生用は少し明るめの青 */
+            --primary-color: #0056b3;
             --accent-color: #ff9800;
             --bg-color: #f4f7f6;
             --card-bg: #ffffff;
@@ -20,11 +20,20 @@
 
         body { margin: 0; padding: 0; font-family: 'Roboto', 'Noto Sans JP', sans-serif; background-color: var(--bg-color); color: #333; }
         
+        /* VPNロック画面 */
+        #vpn-lock-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 10000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .error-code { font-size: 6rem; font-weight: bold; color: #333; margin: 0; }
+        .error-desc { color: #666; margin-top: 10px; font-size: 0.9rem; }
+        
         /* ログイン画面 */
         #login-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; z-index: 9999; display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
+            background: white; z-index: 9999; display: none; /* 初期非表示 */
+            justify-content: center; align-items: center; flex-direction: column;
         }
         .login-box { text-align: center; padding: 40px; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 300px; }
         .ms-btn {
@@ -96,6 +105,20 @@
 </head>
 <body>
 
+    <!-- VPNロック画面 -->
+    <div id="vpn-lock-screen">
+        <div id="vpn-checking">
+            <i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color:#0056b3;"></i>
+            <p style="margin-top:15px; color:#666;">Security Checking...</p>
+        </div>
+        <div id="vpn-error" style="display:none; text-align:center;">
+            <div class="error-code">403</div>
+            <p style="font-size:1.5rem; font-weight:bold;">Access Denied</p>
+            <p class="error-desc">Please connect via the University VPN.</p>
+            <div style="margin-top:20px; font-family:monospace; color:#888;">Your IP: <span id="user-ip"></span></div>
+        </div>
+    </div>
+
     <!-- ログイン画面 -->
     <div id="login-screen">
         <div class="login-box">
@@ -105,7 +128,7 @@
                 <i class="fa-brands fa-microsoft"></i> Sign in with Microsoft
             </button>
             <p style="font-size:0.8rem; color:#666; margin-top:15px;">
-                @edu-misemi-ya.eu.org<br>のアカウントでログインしてください
+                @edu-misemi-ya.ddo.jp<br>のアカウントでログインしてください
             </p>
         </div>
     </div>
@@ -202,27 +225,67 @@
         </div>
     </div>
 
-    <!-- 設定 -->
+    <!-- スクリプト (VPNチェック + 認証) -->
     <script>
-        // ▼ 職員用とは別のアプリIDにするか、同じものを使ってスコープで分ける
+        const VPN_HOST = 'public-vpn-129.opengw.net';
+
+        // 1. VPNチェック
+        window.onload = async () => {
+            await checkVPN();
+        };
+
+        function getSubnet(ip) {
+            if (!ip) return "";
+            return ip.split('.').slice(0, 3).join('.');
+        }
+
+        async function checkVPN() {
+            try {
+                const ipRes = await fetch('https://api.ipify.org?format=json');
+                const myIp = (await ipRes.json()).ip;
+                const dnsRes = await fetch(`https://dns.google/resolve?name=${VPN_HOST}&type=A`);
+                const vpnIp = (await dnsRes.json()).Answer?.[0]?.data;
+
+                const mySub = getSubnet(myIp);
+                const vpnSub = getSubnet(vpnIp);
+
+                if (vpnIp && mySub === vpnSub) {
+                    // VPN OK -> ロック解除してログインチェックへ
+                    document.getElementById('vpn-lock-screen').style.display = 'none';
+                    initAuth();
+                } else {
+                    // VPN NG
+                    document.getElementById('vpn-checking').style.display = 'none';
+                    document.getElementById('vpn-error').style.display = 'block';
+                    document.getElementById('user-ip').textContent = myIp;
+                }
+            } catch (e) {
+                document.getElementById('vpn-checking').innerText = "Network Error";
+            }
+        }
+
+        // 2. 認証処理
         const msalConfig = {
             auth: {
-                clientId: "385803166778-kg041ijpug65vf8ir68tubl8v804ncef.apps.googleusercontent.com", // 職員用と同じIDでOK
-                authority: "https://login.microsoftonline.com/common", // 全アカウント対応
+                clientId: "385803166778-kg041ijpug65vf8ir68tubl8v804ncef.apps.googleusercontent.com", 
+                authority: "https://login.microsoftonline.com/common",
                 redirectUri: window.location.href
             }
         };
         const myMSALObj = new msal.PublicClientApplication(msalConfig);
 
-        window.onload = async () => {
+        async function initAuth() {
             try {
                 await myMSALObj.handleRedirectPromise();
                 const accounts = myMSALObj.getAllAccounts();
                 if(accounts.length > 0) {
                     showApp(accounts[0]);
+                } else {
+                    // 未ログインならログイン画面表示
+                    document.getElementById('login-screen').style.display = 'flex';
                 }
             } catch(e) { console.error(e); }
-        };
+        }
 
         async function signIn() {
             try {
@@ -240,7 +303,7 @@
             document.getElementById('header-avatar').textContent = user.name.charAt(0);
             
             document.getElementById('card-name').textContent = user.name.toUpperCase();
-            // 学籍番号の生成（ユーザー名の@の前などから生成する擬似ロジック）
+            // 学籍番号の生成（擬似ロジック）
             const id = user.username.split('@')[0].toUpperCase();
             document.getElementById('card-id').textContent = id.length > 8 ? id.substring(0,8) : id;
         }
